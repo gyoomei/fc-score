@@ -20,7 +20,7 @@ const publicConfigSchema = z.object({
   appEnv: z.enum(["development", "production"]),
 
   // App settings
-  fid: z.number().min(1, "Farcaster ID is required"),
+  fid: z.number().optional(),
   name: z
     .string()
     .min(1, "App name is required")
