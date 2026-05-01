@@ -45,7 +45,7 @@ export function useInitializeFarcasterApp() {
     async function initialize() {
       // Step 1: Back button setup (if creator context)
       const isCreator = publicConfig.fid;
-      const returnUrl = `https://ai.neynar.com/studio`;
+      const returnUrl = ``; // Removed Neynar Studio redirect
       const backButtonEnabled = Boolean(returnUrl && isCreator);
 
       if (backButtonEnabled && returnUrl) {
