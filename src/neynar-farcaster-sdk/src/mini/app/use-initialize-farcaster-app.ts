@@ -68,27 +68,40 @@ export function useInitializeFarcasterApp() {
       await sdk.actions.ready();
       setSdkReady(true);
 
-      // Step 3: Load user context (with retry for slow client context propagation)
+      // Step 3: Load user context + subscribe for late context propagation
       try {
         setFarcasterUserLoading(true);
         setFarcasterUserError(null);
 
         let user = null as Awaited<typeof sdk.context>["user"] | null;
-        for (let attempt = 0; attempt < 6; attempt++) {
+        for (let attempt = 0; attempt < 10; attempt++) {
           const context = await sdk.context;
           if (context?.user) {
             user = context.user;
             break;
           }
-          await new Promise((resolve) => setTimeout(resolve, 250));
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
 
         if (user) {
           setFarcasterUser(user);
+          setFarcasterUserError(null);
         } else {
           console.info(
-            "No Farcaster user context available after retries - running as guest",
+            "No Farcaster user context available after retries - waiting for subscribe updates",
           );
+        }
+
+        // Some clients populate user context after initial ready(); keep listening.
+        const contextAny = (sdk as unknown as { context?: { subscribe?: (fn: (ctx: { user?: Awaited<typeof sdk.context>["user"] }) => void) => (() => void) | void } }).context;
+        if (contextAny?.subscribe) {
+          contextAny.subscribe((ctx) => {
+            if (ctx?.user) {
+              setFarcasterUser(ctx.user);
+              setFarcasterUserError(null);
+              setFarcasterUserLoading(false);
+            }
+          });
         }
       } catch (error) {
         const errorMessage =

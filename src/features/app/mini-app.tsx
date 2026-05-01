@@ -20,18 +20,22 @@ export function MiniApp() {
   const {
     data: user,
     isLoading: userLoading,
+    error: userError,
   } = useUser(fid ?? 0, { x_neynar_experimental: true }, { enabled: !!fid });
 
   const {
     data: castsData,
     isLoading: castsLoading,
+    error: castsError,
   } = useCastsByUser(
     fid ?? 0,
     { limit: 50, include_replies: true },
     { enabled: !!fid },
   );
 
-  const isLoading = !fid || userLoading || castsLoading;
+  const hasFarcasterContext = Boolean(fid);
+  const isLoading = !hasFarcasterContext || userLoading || castsLoading;
+  const hasDataError = Boolean(userError || castsError);
 
   const scoreResult = useMemo(() => {
     if (!user) return null;
@@ -141,7 +145,7 @@ export function MiniApp() {
       >
         {isLoading ? (
           <ScoreLoading />
-        ) : scoreResult && user ? (
+        ) : hasFarcasterContext && scoreResult && user ? (
           <ScoreResult
             result={scoreResult}
             username={user.username}
@@ -150,6 +154,14 @@ export function MiniApp() {
             followerCount={user.follower_count}
             followingCount={user.following_count}
           />
+        ) : hasFarcasterContext && hasDataError ? (
+          <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+            <span className="text-5xl">⚠️</span>
+            <p className="text-white font-semibold text-lg">Data score belum bisa diambil</p>
+            <p className="text-gray-500 text-sm">
+              App sudah terbuka di Farcaster, tapi API score error. Cek `NEYNAR_API_KEY` di Vercel env.
+            </p>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
             <span className="text-5xl">🔌</span>
