@@ -1,5 +1,5 @@
 "use client";
-import sdk from "@farcaster/miniapp-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { useEffect, useRef } from "react";
 import { useSetAtom } from "jotai";
 import { publicConfig } from "@/config/public-config";

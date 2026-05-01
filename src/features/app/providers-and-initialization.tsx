@@ -3,10 +3,7 @@
 import { ReactNode, useState } from "react";
 import { Provider as JotaiProvider } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  InitializeFarcasterMiniApp,
-  useInitializeFarcasterApp,
-} from "@/neynar-farcaster-sdk/mini";
+import { InitializeFarcasterMiniApp } from "@/neynar-farcaster-sdk/mini";
 import { Toaster } from "@neynar/ui";
 
 export function ProvidersAndInitialization({
@@ -14,7 +11,6 @@ export function ProvidersAndInitialization({
 }: {
   children: ReactNode;
 }) {
-  useInitializeFarcasterApp();
   const [queryClient] = useState(() => new QueryClient());
 
   return (
