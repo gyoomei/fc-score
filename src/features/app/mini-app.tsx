@@ -1,178 +1,170 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
-import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
-import { useUser } from "@/neynar-web-sdk/neynar";
-import { useCastsByUser } from "@/neynar-web-sdk/neynar";
-import { calculateScore } from "./score-calculator";
-import { ScoreResult } from "./components/score-result";
+import { useMemo, useState } from "react";
 import { ScoreLoading } from "./components/score-loading";
-import { ScoreRevealParticles } from "./components/score-reveal-particles";
+
+type ApiResult = {
+  address: string;
+  chain: "base";
+  txCount: number;
+  walletAgeDays: number;
+  activeDays30: number;
+  totalVolumeEth: number;
+  dexVolume24hUsd: number;
+  breakdown: {
+    walletAgeScore: number;
+    txCountScore: number;
+    activityScore: number;
+    volumeScore: number;
+    marketScore: number;
+    totalScore: number;
+  };
+  tier: "Dormant" | "Active" | "Power" | "Whale";
+};
 
 export function MiniApp() {
-  const { data: fcUser } = useFarcasterUser();
-  const fid = fcUser?.fid;
+  const [address, setAddress] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ApiResult | null>(null);
 
-  const [particlesActive, setParticlesActive] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const prevScoreRef = useRef<number | null>(null);
-
-  const {
-    data: user,
-    isLoading: userLoading,
-    error: userError,
-  } = useUser(fid ?? 0, { x_neynar_experimental: true }, { enabled: !!fid });
-
-  const {
-    data: castsData,
-    isLoading: castsLoading,
-    error: castsError,
-  } = useCastsByUser(
-    fid ?? 0,
-    { limit: 50, include_replies: true },
-    { enabled: !!fid },
+  const isValidAddress = useMemo(
+    () => /^0x[a-fA-F0-9]{40}$/.test(address.trim()),
+    [address],
   );
 
-  const hasFarcasterContext = Boolean(fid);
-  const isLoading = !hasFarcasterContext || userLoading || castsLoading;
-  const hasDataError = Boolean(userError || castsError);
-
-  const scoreResult = useMemo(() => {
-    if (!user) return null;
-
-    const casts = castsData?.pages.flatMap((p) => p.items) ?? [];
-
-    let totalLikes = 0;
-    let totalReplies = 0;
-    let totalRecasts = 0;
-
-    for (const cast of casts) {
-      const reactions = (cast as unknown as {
-        reactions?: { likes_count?: number; recasts_count?: number };
-        replies?: { count?: number };
-      }).reactions;
-      const replies = (cast as unknown as {
-        reactions?: { likes_count?: number; recasts_count?: number };
-        replies?: { count?: number };
-      }).replies;
-
-      totalLikes += reactions?.likes_count ?? 0;
-      totalReplies += replies?.count ?? 0;
-      totalRecasts += reactions?.recasts_count ?? 0;
+  async function handleCheck() {
+    const addr = address.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      setError("Alamat wallet Base tidak valid");
+      setResult(null);
+      return;
     }
 
-    return calculateScore({
-      followerCount: user.follower_count,
-      followingCount: user.following_count,
-      createdAt: undefined, // Neynar user doesn't expose createdAt directly
-      verifications: user.verifications ?? [],
-      powerBadge: user.power_badge ?? false,
-      castsLikesCount: totalLikes,
-      castsRepliesCount: totalReplies,
-      castsRecastsCount: totalRecasts,
-    });
-  }, [user, castsData]);
+    setLoading(true);
+    setError(null);
 
-  // Fire particles exactly once when score first appears
-  useEffect(() => {
-    if (!scoreResult) return;
-    const score = scoreResult.breakdown.totalScore;
-    if (prevScoreRef.current === null && score > 0) {
-      prevScoreRef.current = score;
-      // Small delay so the result card has time to mount first
-      setTimeout(() => {
-        setRevealed(true);
-        setParticlesActive(true);
-        // Turn off after 3s so it doesn't re-fire
-        setTimeout(() => setParticlesActive(false), 3000);
-      }, 300);
+    try {
+      const res = await fetch(`/api/score/base/${addr}`, { cache: "no-store" });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json?.error || "Gagal menghitung score");
+      }
+      setResult(json as ApiResult);
+    } catch (e) {
+      setResult(null);
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setLoading(false);
     }
-  }, [scoreResult]);
+  }
 
   return (
     <div
-      className="relative min-h-dvh w-full overflow-hidden"
+      className="relative min-h-dvh w-full overflow-hidden px-4 pb-10"
       style={{
         background: "linear-gradient(180deg, #0a0a14 0%, #0a0a0f 40%, #08080c 100%)",
       }}
     >
-      {/* Particle canvas — fills entire screen, fires on reveal */}
-      <ScoreRevealParticles
-        active={particlesActive}
-        tierColor={scoreResult?.tier.color ?? "#c9a227"}
-      />
-
-      {/* Top gradient accent */}
-      <div
-        className="absolute top-0 left-0 right-0 h-64 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,58,237,0.15) 0%, transparent 100%)",
-        }}
-      />
-
-      {/* Header */}
-      <div className="relative z-10 flex flex-col items-center pt-8 pb-4 px-4">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-2xl">🏆</span>
-          <h1
-            className="text-2xl font-black tracking-tight"
-            style={{
-              background: "linear-gradient(135deg, #ffffff 30%, #c9a227 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            FC Score
-          </h1>
+      <div className="mx-auto max-w-md pt-8">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-black text-white">Base Wallet Score</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            No Neynar API. Pure Base onchain: tx count, wallet age, volume, activity.
+          </p>
         </div>
-        <p className="text-gray-500 text-xs tracking-widest uppercase">
-          Your Farcaster Power
-        </p>
-      </div>
 
-      {/* Content */}
-      <div
-        className="relative z-10"
-        style={{
-          opacity: revealed || isLoading || !scoreResult ? 1 : 0,
-          transform:
-            revealed || isLoading || !scoreResult
-              ? "translateY(0) scale(1)"
-              : "translateY(24px) scale(0.97)",
-          transition: "opacity 0.55s cubic-bezier(0.34,1.56,0.64,1), transform 0.55s cubic-bezier(0.34,1.56,0.64,1)",
-        }}
-      >
-        {isLoading ? (
-          <ScoreLoading />
-        ) : hasFarcasterContext && scoreResult && user ? (
-          <ScoreResult
-            result={scoreResult}
-            username={user.username}
-            displayName={user.display_name ?? user.username}
-            pfpUrl={user.pfp_url}
-            followerCount={user.follower_count}
-            followingCount={user.following_count}
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+          <label className="text-xs uppercase tracking-widest text-gray-500">
+            Base Wallet Address
+          </label>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="0x..."
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-amber-400"
           />
-        ) : hasFarcasterContext && hasDataError ? (
-          <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-            <span className="text-5xl">⚠️</span>
-            <p className="text-white font-semibold text-lg">Data score belum bisa diambil</p>
-            <p className="text-gray-500 text-sm">
-              App sudah terbuka di Farcaster, tapi API score error. Cek `NEYNAR_API_KEY` di Vercel env.
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-            <span className="text-5xl">🔌</span>
-            <p className="text-white font-semibold text-lg">
-              Sign in to Farcaster
-            </p>
-            <p className="text-gray-500 text-sm">
-              Open this app inside a Farcaster client to see your score
-            </p>
+          <button
+            onClick={handleCheck}
+            disabled={loading || !isValidAddress}
+            className="w-full rounded-xl py-3 font-bold text-black disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg,#c9a227,#f59e0b)" }}
+          >
+            {loading ? "Calculating..." : "Check Base Score"}
+          </button>
+          {!isValidAddress && address.length > 0 && (
+            <p className="text-xs text-rose-400">Format address tidak valid</p>
+          )}
+        </div>
+
+        {loading && <ScoreLoading />}
+
+        {error && !loading && (
+          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+            {error}
           </div>
         )}
+
+        {result && !loading && (
+          <div className="mt-5 space-y-4">
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
+              <p className="text-gray-400 text-xs uppercase tracking-widest">Total Score</p>
+              <p className="text-4xl font-black text-amber-300 mt-1">{result.breakdown.totalScore}</p>
+              <p className="text-sm text-white mt-1">Tier: {result.tier}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Metric label="Tx Count" value={result.txCount.toLocaleString()} />
+              <Metric label="Wallet Age" value={`${result.walletAgeDays} days`} />
+              <Metric label="Active 30d" value={`${result.activeDays30} tx`} />
+              <Metric label="Volume" value={`${result.totalVolumeEth} ETH`} />
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">Breakdown</p>
+              <BreakRow label="Wallet Age" value={result.breakdown.walletAgeScore} max={250} />
+              <BreakRow label="Tx Count" value={result.breakdown.txCountScore} max={300} />
+              <BreakRow label="Activity" value={result.breakdown.activityScore} max={250} />
+              <BreakRow label="Volume" value={result.breakdown.volumeScore} max={150} />
+              <BreakRow label="Market (DefiLlama)" value={result.breakdown.marketScore} max={50} />
+              <p className="mt-3 text-xs text-gray-500">
+                DEX 24h volume (Base): ${result.dexVolume24hUsd.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <p className="text-gray-500 text-xs">{label}</p>
+      <p className="text-white font-semibold text-sm mt-1">{value}</p>
+    </div>
+  );
+}
+
+function BreakRow({ label, value, max }: { label: string; value: number; max: number }) {
+  const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+  return (
+    <div className="mb-2">
+      <div className="flex justify-between text-xs text-gray-400 mb-1">
+        <span>{label}</span>
+        <span>
+          {value}/{max}
+        </span>
+      </div>
+      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${pct}%`,
+            background: "linear-gradient(90deg,#7c3aed,#c9a227)",
+          }}
+        />
       </div>
     </div>
   );

@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 const STEPS = [
-  "Fetching your profile...",
-  "Analyzing followers...",
-  "Calculating engagement...",
-  "Checking account age...",
-  "Computing your score...",
+  "Reading Base transactions...",
+  "Calculating wallet age...",
+  "Measuring activity consistency...",
+  "Computing total volume...",
+  "Finalizing Base score...",
 ];
 
 export function ScoreLoading() {
