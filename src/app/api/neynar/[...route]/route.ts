@@ -5,7 +5,7 @@ import { privateConfig } from "@/config/private-config";
 
 // Create SDK client with proper Configuration object (SDK requires this format to pass API key)
 const config = new Configuration({
-  apiKey: privateConfig.neynarApiKey,
+  apiKey: privateConfig.neynarApiKey || "",
 });
 
 const client = new NeynarAPIClient(config);
