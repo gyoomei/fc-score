@@ -1,0 +1,13 @@
+{
+  "name": "FC Score",
+  "shortName": "FC Score",
+  "subtitle": "Your Farcaster Power Score",
+  "description": "Discover your Farcaster influence score. Calculated from followers, likes, replies, account age, and engagement with prestige tiers from Newcomer to Legend.",
+  "shortDescription": "Calculate your Farcaster influence score and tier",
+  "primaryCategory": "social",
+  "tags": ["farcaster", "score", "social", "analytics", "identity"],
+  "splashBackgroundColor": "#0a0a0f",
+  "tagline": "Your Farcaster power meter",
+  "requiredChains": ["eip155:8453", "eip155:1"],
+  "shareButtonTitle": "See My Score"
+}
