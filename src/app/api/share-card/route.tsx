@@ -8,24 +8,24 @@ function clampScore(input: number): number {
 }
 
 function tierFromScore(score: number): "Dormant" | "Active" | "Power" | "Whale" {
-  if (score >= 750) return "Whale";
-  if (score >= 500) return "Power";
-  if (score >= 250) return "Active";
+  if (score >= 850) return "Whale";
+  if (score >= 650) return "Power";
+  if (score >= 350) return "Active";
   return "Dormant";
 }
 
 function nextTierInfo(score: number): { label: string; progressPct: number } {
-  if (score >= 750) return { label: "Max tier reached", progressPct: 100 };
-  if (score >= 500) {
-    const pct = Math.max(0, Math.min(100, ((score - 500) / 250) * 100));
-    return { label: `To Whale: ${750 - score} pts`, progressPct: pct };
+  if (score >= 850) return { label: "Max tier reached", progressPct: 100 };
+  if (score >= 650) {
+    const pct = Math.max(0, Math.min(100, ((score - 650) / 200) * 100));
+    return { label: `To Whale: ${850 - score} pts`, progressPct: pct };
   }
-  if (score >= 250) {
-    const pct = Math.max(0, Math.min(100, ((score - 250) / 250) * 100));
-    return { label: `To Power: ${500 - score} pts`, progressPct: pct };
+  if (score >= 350) {
+    const pct = Math.max(0, Math.min(100, ((score - 350) / 300) * 100));
+    return { label: `To Power: ${650 - score} pts`, progressPct: pct };
   }
-  const pct = Math.max(0, Math.min(100, (score / 250) * 100));
-  return { label: `To Active: ${250 - score} pts`, progressPct: pct };
+  const pct = Math.max(0, Math.min(100, (score / 350) * 100));
+  return { label: `To Active: ${350 - score} pts`, progressPct: pct };
 }
 
 function safeText(input: string, fallback: string, maxLen = 32): string {

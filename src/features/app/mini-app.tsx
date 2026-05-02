@@ -25,10 +25,10 @@ type ApiResult = {
 };
 
 const TIER_STEPS: { name: TierName; range: string; hint: string }[] = [
-  { name: "Dormant", range: "0–249", hint: "Low activity" },
-  { name: "Active", range: "250–499", hint: "Consistent usage" },
-  { name: "Power", range: "500–749", hint: "High engagement" },
-  { name: "Whale", range: "750–1000", hint: "Top onchain signal" },
+  { name: "Dormant", range: "0–349", hint: "Low activity" },
+  { name: "Active", range: "350–649", hint: "Consistent usage" },
+  { name: "Power", range: "650–849", hint: "High engagement" },
+  { name: "Whale", range: "850–1000", hint: "Top onchain signal" },
 ];
 
 function shortenAddress(value: string): string {
