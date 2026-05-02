@@ -225,28 +225,35 @@ export function MiniApp() {
       <Header subtitle={`Wallet: ${shortAddress}`} />
 
       <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
-        <div className="group relative isolate overflow-hidden rounded-3xl border border-violet-400/35 bg-gradient-to-br from-violet-500/20 via-violet-500/5 to-amber-400/20 p-5 shadow-[0_14px_60px_rgba(124,58,237,0.28)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_22px_80px_rgba(124,58,237,0.38)]">
+        <div className="group relative isolate overflow-hidden rounded-[28px] border border-white/15 bg-[linear-gradient(155deg,rgba(139,92,246,0.26),rgba(31,41,55,0.20)_45%,rgba(251,191,36,0.18))] p-6 shadow-[0_20px_80px_rgba(76,29,149,0.34)] ring-1 ring-inset ring-white/10 transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_30px_95px_rgba(124,58,237,0.42)]
+        ">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.18),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(168,85,247,0.25),transparent_35%)]" />
           <div className="pointer-events-none absolute -top-14 -right-10 h-36 w-36 rounded-full bg-violet-500/25 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-10 h-36 w-36 rounded-full bg-amber-400/15 blur-3xl" />
           <div className="pointer-events-none absolute right-6 top-6 h-2 w-2 animate-ping rounded-full bg-violet-200/80" />
 
-          <p className="text-gray-200 text-xs font-extrabold uppercase tracking-[0.22em]">Total Score</p>
-          <p className="mt-2 bg-gradient-to-r from-white via-violet-100 to-amber-100 bg-clip-text text-6xl font-black leading-none text-transparent drop-shadow-[0_2px_18px_rgba(124,58,237,0.45)]">{result.breakdown.totalScore}</p>
-          <div className="mt-2 flex items-center gap-2">
+          <p className="text-gray-200/90 text-[11px] font-extrabold uppercase tracking-[0.26em]">Total Score</p>
+          <div className="mt-3 flex items-end justify-between gap-3">
+            <p className="bg-gradient-to-r from-white via-violet-100 to-amber-100 bg-clip-text text-6xl font-black leading-none text-transparent drop-shadow-[0_2px_22px_rgba(124,58,237,0.52)]">{result.breakdown.totalScore}</p>
+            <div className="mb-1 rounded-xl border border-white/15 bg-black/20 px-3 py-1 text-right backdrop-blur-sm">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-300">Reputation Index</p>
+              <p className="text-xs font-extrabold text-emerald-200">Verified Onchain</p>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
             <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-violet-100">Tier {result.tier}</p>
             <span className="inline-flex rounded-full border border-emerald-300/25 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">Live Base</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5">
           <Metric label="Tx Count" value={result.txCount.toLocaleString()} />
           <Metric label="Wallet Age" value={`${result.walletAgeDays} days`} />
           <Metric label="Active 30d" value={`${result.activeDays30} tx`} />
           <Metric label="Volume" value={`${result.totalVolumeEth} ETH`} />
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+        <div className="rounded-2xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_44px_rgba(0,0,0,0.30)] ring-1 ring-inset ring-white/10">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gray-400">Breakdown</p>
             <span className="text-[11px] font-semibold text-violet-200/80">Auto weighted</span>
@@ -257,7 +264,7 @@ export function MiniApp() {
           <BreakRow label="Volume" value={result.breakdown.volumeScore} max={150} />
         </div>
 
-        <div className="rounded-2xl border border-violet-300/20 bg-white/[0.02] p-4 backdrop-blur-sm shadow-[0_10px_30px_rgba(76,29,149,0.18)]">
+        <div className="rounded-2xl border border-violet-300/24 bg-[linear-gradient(160deg,rgba(124,58,237,0.10),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_36px_rgba(76,29,149,0.24)] ring-1 ring-inset ring-white/10">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-violet-200">Tier Ladder</p>
             <span className="rounded-full border border-violet-300/30 bg-violet-400/10 px-2 py-0.5 text-[11px] font-semibold text-violet-100">
@@ -347,10 +354,10 @@ function Header({ subtitle }: { subtitle: string }) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-white/[0.06] hover:shadow-[0_10px_30px_rgba(124,58,237,0.18)]">
-      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.1),transparent_45%)]" />
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">{label}</p>
-      <p className="mt-1 text-sm font-extrabold text-white">{value}</p>
+    <div className="group relative overflow-hidden rounded-xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/35 hover:shadow-[0_14px_34px_rgba(124,58,237,0.22)]">
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.12),transparent_45%)]" />
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">{label}</p>
+      <p className="mt-1.5 text-[15px] font-extrabold text-white">{value}</p>
     </div>
   );
 }
