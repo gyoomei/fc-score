@@ -44,6 +44,7 @@ export function MiniApp() {
   const [resolvedAddress, setResolvedAddress] = useState<string>("");
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
   const hasAutoFetchedRef = useRef(false);
 
   const isValidAddress = useMemo(
@@ -67,6 +68,10 @@ export function MiniApp() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     if (hasAutoFetchedRef.current) return;
@@ -236,23 +241,30 @@ export function MiniApp() {
 
           <p className="text-gray-200/90 text-[11px] font-extrabold uppercase tracking-[0.26em]">Total Score</p>
           <div className="mt-3 flex items-end justify-between gap-3">
-            <p className="bg-gradient-to-r from-white via-violet-100 to-amber-100 bg-clip-text text-6xl font-black leading-none text-transparent drop-shadow-[0_2px_22px_rgba(124,58,237,0.52)]">{result.breakdown.totalScore}</p>
+            <p className="bg-gradient-to-r from-white via-violet-100 to-amber-100 bg-clip-text text-6xl font-black leading-none text-transparent drop-shadow-[0_2px_22px_rgba(124,58,237,0.52)]">
+              <AnimatedNumber value={result.breakdown.totalScore} duration={1100} />
+            </p>
             <div className="mb-1 rounded-xl border border-white/15 bg-black/20 px-3 py-1 text-right backdrop-blur-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-300">Reputation Index</p>
               <p className="text-xs font-extrabold text-emerald-200">Verified Onchain</p>
             </div>
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-violet-100">Tier {result.tier}</p>
+            <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-violet-100 transition-all duration-300 group-hover:scale-[1.03]">Tier {result.tier}</p>
             <span className="inline-flex rounded-full border border-emerald-300/25 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">Live Base</span>
+          </div>
+          <div className="pointer-events-none mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={`h-full w-1/2 rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent ${ready ? "animate-[shimmerX_2.2s_ease-in-out_infinite]" : ""}`}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2.5">
-          <Metric label="Tx Count" value={result.txCount.toLocaleString()} />
-          <Metric label="Wallet Age" value={`${result.walletAgeDays} days`} />
-          <Metric label="Active 30d" value={`${result.activeDays30} tx`} />
-          <Metric label="Volume" value={`${result.totalVolumeEth} ETH`} />
+          <Metric delay={0} label="Tx Count" value={result.txCount.toLocaleString()} />
+          <Metric delay={70} label="Wallet Age" value={`${result.walletAgeDays} days`} />
+          <Metric delay={140} label="Active 30d" value={`${result.activeDays30} tx`} />
+          <Metric delay={210} label="Volume" value={`${result.totalVolumeEth} ETH`} />
         </div>
 
         <div className="rounded-2xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_44px_rgba(0,0,0,0.30)] ring-1 ring-inset ring-white/10">
@@ -334,6 +346,21 @@ export function MiniApp() {
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh w-full overflow-hidden px-4 pb-10" style={{ background: "radial-gradient(1200px 500px at 50% -10%, rgba(124,58,237,0.2), transparent), linear-gradient(180deg, #090912 0%, #0a0a0f 45%, #07070b 100%)" }}>
+      <style jsx global>{`
+        @keyframes shimmerX {
+          0% {
+            transform: translateX(-120%);
+            opacity: 0;
+          }
+          20% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(260%);
+            opacity: 0;
+          }
+        }
+      `}</style>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(124,58,237,0.14),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(245,158,11,0.08),transparent_30%)]" />
       <div className="mx-auto max-w-md pt-8">{children}</div>
     </div>
@@ -354,9 +381,12 @@ function Header({ subtitle }: { subtitle: string }) {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, delay = 0 }: { label: string; value: string; delay?: number }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/35 hover:shadow-[0_14px_34px_rgba(124,58,237,0.22)]">
+    <div
+      className="group relative overflow-hidden rounded-xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/35 hover:shadow-[0_14px_34px_rgba(124,58,237,0.22)] animate-in fade-in-0 slide-in-from-bottom-2"
+      style={{ animationDelay: `${delay}ms`, animationDuration: "500ms" }}
+    >
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.12),transparent_45%)]" />
       <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">{label}</p>
       <p className="mt-1.5 text-[15px] font-extrabold text-white">{value}</p>
@@ -370,7 +400,9 @@ function BreakRow({ label, value, max }: { label: string; value: number; max: nu
     <div className="mb-3">
       <div className="mb-1 flex justify-between text-xs text-gray-400">
         <span className="font-bold tracking-wide">{label}</span>
-        <span className="font-semibold">{value}/{max}</span>
+        <span className="font-semibold">
+          <AnimatedNumber value={value} duration={900} />/{max}
+        </span>
       </div>
       <div className="relative h-2.5 overflow-hidden rounded-full bg-white/10">
         <div
@@ -381,4 +413,27 @@ function BreakRow({ label, value, max }: { label: string; value: number; max: nu
       </div>
     </div>
   );
+}
+
+function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const start = performance.now();
+    let frame = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(value * eased));
+      if (progress < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, duration]);
+
+  return <>{displayValue.toLocaleString()}</>;
 }
