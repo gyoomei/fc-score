@@ -7,7 +7,7 @@
   "primaryCategory": "finance",
   "tags": ["base", "wallet", "onchain", "score", "analytics"],
   "splashBackgroundColor": "#0a0a0f",
-  "tagline": "Onchain signal. One Base score.",
+  "tagline": "Onchain signal. Base score.",
   "requiredChains": ["eip155:8453", "eip155:1"],
   "shareButtonTitle": "See My Base Score"
 }

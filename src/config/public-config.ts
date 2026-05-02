@@ -114,7 +114,7 @@ const canonicalDomain =
   process.env.NEXT_PUBLIC_VERCEL_PRODUCTION_URL ??
   process.env.NEXT_PUBLIC_LOCAL_URL ??
   process.env.NEXT_PUBLIC_BASE_URL ??
-  "";
+  "fc-score-aa8e.vercel.app";
 
 const homeUrl = `https://${canonicalDomain}`;
 
