@@ -27,7 +27,8 @@ export async function GET(
     return NextResponse.json(result, {
       status: 200,
       headers: {
-        "Cache-Control": "no-store, max-age=0",
+        // Short edge/browser cache makes repeated opens instant while keeping score fresh.
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
       },
     });
   } catch (error) {

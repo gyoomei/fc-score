@@ -72,7 +72,7 @@ type BlockscoutAddressRef = {
 };
 
 type BlockscoutTx = {
-  timestamp?: string;
+  timestamp?: string | number;
   value?: string;
   result?: string;
   status?: string;
@@ -91,6 +91,23 @@ type BlockscoutResponse = {
 type BlockscoutCountersResponse = {
   transactions_count?: string;
   token_transfers_count?: string;
+};
+
+type BlockscoutLegacyTx = {
+  timeStamp?: string;
+  value?: string;
+  isError?: string;
+  txreceipt_status?: string;
+  methodId?: string;
+  input?: string;
+  to?: string;
+  contractAddress?: string;
+};
+
+type BlockscoutLegacyResponse = {
+  status?: string;
+  message?: string;
+  result?: BlockscoutLegacyTx[] | string;
 };
 
 type WarpcastUserResponse = {
@@ -113,8 +130,11 @@ type WarpcastCastsResponse = {
   };
 };
 
-const MAX_TRANSACTION_PAGES = 8;
+// Keep the first load fast in Mini App clients. Counters still provide full tx totals,
+// while the latest 150 indexed transactions are enough for recency/protocol signals.
+const MAX_TRANSACTION_PAGES = 3;
 const PAGE_SIZE = 50;
+const FARCASTER_CAST_LIMIT = 25;
 
 const PROTOCOL_CATEGORY_ORDER: ProtocolCategory[] = [
   "swap",
@@ -281,11 +301,48 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-async function fetchBlockscoutTxs(address: string, maxPages = MAX_TRANSACTION_PAGES): Promise<BlockscoutTx[]> {
+function normalizeLegacyTx(tx: BlockscoutLegacyTx): BlockscoutTx {
+  const toHash = /^0x[a-fA-F0-9]{40}$/.test(tx.to ?? "") ? tx.to : undefined;
+  const contractHash = /^0x[a-fA-F0-9]{40}$/.test(tx.contractAddress ?? "") ? tx.contractAddress : undefined;
+
+  return {
+    timestamp: tx.timeStamp ? Number(tx.timeStamp) * 1000 : undefined,
+    value: tx.value,
+    result: tx.isError === "1" ? "failed" : "success",
+    status: tx.txreceipt_status === "0" ? "failed" : "ok",
+    raw_input: tx.input,
+    method: tx.methodId,
+    to: toHash ? { hash: toHash, is_contract: Boolean(tx.input && tx.input !== "0x") } : null,
+    created_contract: contractHash ? { hash: contractHash, is_contract: true } : null,
+  };
+}
+
+async function fetchBlockscoutTxs(address: string): Promise<BlockscoutTx[]> {
+  // The legacy account endpoint is much faster for the newest tx sample than paging v2.
+  // v2 remains available as a fallback when legacy output is empty or temporarily unavailable.
+  try {
+    const url = new URL("https://base.blockscout.com/api");
+    url.searchParams.set("module", "account");
+    url.searchParams.set("action", "txlist");
+    url.searchParams.set("address", address);
+    url.searchParams.set("startblock", "0");
+    url.searchParams.set("endblock", "99999999");
+    url.searchParams.set("page", "1");
+    url.searchParams.set("offset", String(MAX_TRANSACTION_PAGES * PAGE_SIZE));
+    url.searchParams.set("sort", "desc");
+
+    const legacy = await fetchJson<BlockscoutLegacyResponse>(url.toString());
+    if (Array.isArray(legacy.result) && legacy.result.length > 0) {
+      return legacy.result.map(normalizeLegacyTx);
+    }
+  } catch {
+    // Fall through to v2 fallback.
+  }
+
   const items: BlockscoutTx[] = [];
   let nextParams: BlockscoutResponse["next_page_params"] = null;
 
-  for (let page = 0; page < maxPages; page += 1) {
+  for (let page = 0; page < MAX_TRANSACTION_PAGES; page += 1) {
     const url = new URL(`https://base.blockscout.com/api/v2/addresses/${address}/transactions`);
     url.searchParams.set("items_count", String(PAGE_SIZE));
 
@@ -319,7 +376,7 @@ async function fetchFarcasterSocialSignal(fid?: number): Promise<FarcasterSocial
   try {
     const [userPayload, castsPayload] = await Promise.all([
       fetchJson<WarpcastUserResponse>(`https://api.warpcast.com/v2/user-by-fid?fid=${fid}`),
-      fetchJson<WarpcastCastsResponse>(`https://api.warpcast.com/v2/casts?fid=${fid}&limit=50`),
+      fetchJson<WarpcastCastsResponse>(`https://api.warpcast.com/v2/casts?fid=${fid}&limit=${FARCASTER_CAST_LIMIT}`),
     ]);
 
     const user = userPayload.result?.user;
@@ -342,7 +399,7 @@ async function fetchFarcasterSocialSignal(fid?: number): Promise<FarcasterSocial
     const activeScore = Math.round(clamp((activeDays.size / 12) * 12, 0, 12));
     const graphPenalty = following > Math.max(80, followers * 8) ? 8 : 0;
     const score = Math.round(clamp(followerScore + castScore + engagementScore + activeScore - graphPenalty, 0, 60));
-    const confidence = Math.round(clamp(45 + Math.min(casts.length / 50, 1) * 35 + (followers > 0 ? 20 : 0), 0, 100));
+    const confidence = Math.round(clamp(45 + Math.min(casts.length / FARCASTER_CAST_LIMIT, 1) * 35 + (followers > 0 ? 20 : 0), 0, 100));
 
     return {
       fid,
