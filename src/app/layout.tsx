@@ -1,7 +1,7 @@
 import "@/app/globals.css";
 import { ThemeClient } from "@/components/theme-client";
 import { ProvidersAndInitialization } from "@/features/app/providers-and-initialization";
-import { Caveat, Geist, Geist_Mono, Patrick_Hand } from "next/font/google";
+import { Caveat, Geist, Geist_Mono, Patrick_Hand, Space_Grotesk } from "next/font/google";
 import { ReactNode } from "react";
 
 const geistSans = Geist({
@@ -26,6 +26,12 @@ const patrickHand = Patrick_Hand({
   weight: "400",
 });
 
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -33,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeClient />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} ${patrickHand.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} ${patrickHand.variable} ${spaceGrotesk.variable} antialiased`}
       >
         <ProvidersAndInitialization>{children}</ProvidersAndInitialization>
       </body>

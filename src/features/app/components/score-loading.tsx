@@ -21,13 +21,19 @@ export function ScoreLoading() {
   }, []);
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
+      <div className="pointer-events-none absolute -left-12 -top-12 h-32 w-32 animate-pulse rounded-full bg-violet-500/20 blur-2xl" />
+      <div className="pointer-events-none absolute -bottom-12 -right-12 h-32 w-32 animate-pulse rounded-full bg-amber-400/20 blur-2xl" />
+
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-widest text-gray-500">Analyzing</p>
-          <h3 className="text-base font-semibold text-white">Base Wallet Score</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">Analyzing</p>
+          <h3 className="text-lg font-black text-white">Base Wallet Score</h3>
         </div>
-        <div className="h-10 w-10 animate-pulse rounded-xl bg-gradient-to-br from-violet-400/40 to-amber-400/40" />
+        <div className="relative h-10 w-10">
+          <div className="absolute inset-0 animate-spin rounded-xl border-2 border-violet-300/20 border-t-violet-300" />
+          <div className="absolute inset-2 rounded-md bg-gradient-to-br from-violet-400/40 to-amber-400/40" />
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -47,7 +53,7 @@ export function ScoreLoading() {
               }`}
             >
               <div className="flex items-center justify-between gap-3">
-                <p className={`text-sm ${active ? "text-white" : done ? "text-emerald-200" : "text-gray-400"}`}>
+                <p className={`text-sm font-bold ${active ? "text-white" : done ? "text-emerald-200" : "text-gray-400"}`}>
                   {item}
                 </p>
                 <span className="text-xs text-gray-400">{done ? "✓" : active ? "…" : ""}</span>
