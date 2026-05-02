@@ -163,13 +163,18 @@ export function MiniApp() {
       <Header subtitle={`Wallet: ${shortAddress}`} />
 
       <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
-        <div className="group relative overflow-hidden rounded-3xl border border-violet-400/35 bg-gradient-to-br from-violet-500/20 via-violet-500/5 to-amber-400/20 p-5 shadow-[0_14px_60px_rgba(124,58,237,0.28)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_22px_80px_rgba(124,58,237,0.38)]">
+        <div className="group relative isolate overflow-hidden rounded-3xl border border-violet-400/35 bg-gradient-to-br from-violet-500/20 via-violet-500/5 to-amber-400/20 p-5 shadow-[0_14px_60px_rgba(124,58,237,0.28)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_22px_80px_rgba(124,58,237,0.38)]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.18),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(168,85,247,0.25),transparent_35%)]" />
           <div className="pointer-events-none absolute -top-14 -right-10 h-36 w-36 rounded-full bg-violet-500/25 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-10 h-36 w-36 rounded-full bg-amber-400/15 blur-3xl" />
+          <div className="pointer-events-none absolute right-6 top-6 h-2 w-2 animate-ping rounded-full bg-violet-200/80" />
 
           <p className="text-gray-200 text-xs font-extrabold uppercase tracking-[0.22em]">Total Score</p>
-          <p className="mt-2 text-6xl font-black leading-none text-white drop-shadow-[0_2px_18px_rgba(124,58,237,0.45)]">{result.breakdown.totalScore}</p>
-          <p className="mt-2 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-violet-100">Tier {result.tier}</p>
+          <p className="mt-2 bg-gradient-to-r from-white via-violet-100 to-amber-100 bg-clip-text text-6xl font-black leading-none text-transparent drop-shadow-[0_2px_18px_rgba(124,58,237,0.45)]">{result.breakdown.totalScore}</p>
+          <div className="mt-2 flex items-center gap-2">
+            <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-violet-100">Tier {result.tier}</p>
+            <span className="inline-flex rounded-full border border-emerald-300/25 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">Live Base</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -180,7 +185,10 @@ export function MiniApp() {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
-          <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.18em] text-gray-400">Breakdown</p>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gray-400">Breakdown</p>
+            <span className="text-[11px] font-semibold text-violet-200/80">Auto weighted</span>
+          </div>
           <BreakRow label="Wallet Age" value={result.breakdown.walletAgeScore} max={250} />
           <BreakRow label="Tx Count" value={result.breakdown.txCountScore} max={300} />
           <BreakRow label="Activity" value={result.breakdown.activityScore} max={300} />
@@ -194,6 +202,7 @@ export function MiniApp() {
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh w-full overflow-hidden px-4 pb-10" style={{ background: "radial-gradient(1200px 500px at 50% -10%, rgba(124,58,237,0.2), transparent), linear-gradient(180deg, #090912 0%, #0a0a0f 45%, #07070b 100%)" }}>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(124,58,237,0.14),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(245,158,11,0.08),transparent_30%)]" />
       <div className="mx-auto max-w-md pt-8">{children}</div>
     </div>
   );
@@ -202,6 +211,9 @@ function PageShell({ children }: { children: React.ReactNode }) {
 function Header({ subtitle }: { subtitle: string }) {
   return (
     <div className="mb-6 text-center animate-in fade-in-0 zoom-in-95 duration-500">
+      <p className="mb-2 inline-flex rounded-full border border-violet-300/25 bg-violet-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-violet-100">
+        Onchain Reputation
+      </p>
       <h1 className="bg-gradient-to-r from-white via-violet-200 to-amber-200 bg-clip-text text-3xl font-black tracking-tight text-transparent">
         Base Wallet Score
       </h1>
@@ -212,7 +224,8 @@ function Header({ subtitle }: { subtitle: string }) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="group rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-white/[0.06]">
+    <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-white/[0.06] hover:shadow-[0_10px_30px_rgba(124,58,237,0.18)]">
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.1),transparent_45%)]" />
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">{label}</p>
       <p className="mt-1 text-sm font-extrabold text-white">{value}</p>
     </div>
@@ -227,11 +240,12 @@ function BreakRow({ label, value, max }: { label: string; value: number; max: nu
         <span className="font-bold tracking-wide">{label}</span>
         <span className="font-semibold">{value}/{max}</span>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+      <div className="relative h-2.5 overflow-hidden rounded-full bg-white/10">
         <div
           className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-amber-400 transition-all duration-1000"
           style={{ width: `${pct}%` }}
         />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white/40 to-transparent blur-[2px]" style={{ transform: `translateX(calc(${pct}% - 2.5rem))` }} />
       </div>
     </div>
   );
