@@ -20,6 +20,19 @@ declare global {
   }
 }
 
+type ProtocolCategory =
+  | "swap"
+  | "bridge"
+  | "nft"
+  | "social"
+  | "builder"
+  | "defi"
+  | "gaming"
+  | "stablecoin"
+  | "transfer"
+  | "contract"
+  | "unknown";
+
 type ApiResult = {
   address: string;
   chain: "base";
@@ -33,6 +46,22 @@ type ApiResult = {
   sampleSize?: number;
   source?: string;
   scoringVersion?: string;
+  protocolBreakdown?: {
+    categoryDiversity: number;
+    primaryCategory: ProtocolCategory | "none";
+    topCategories: { category: ProtocolCategory; count: number; weight: number }[];
+  };
+  farcasterSocial?: {
+    fid: number;
+    username?: string;
+    followers: number;
+    castsSampled: number;
+    likesSampled: number;
+    activeDays30: number;
+    score: number;
+    confidence: number;
+    source: "warpcast-public";
+  };
   insights?: string[];
   breakdown: {
     walletAgeScore: number;
@@ -42,11 +71,22 @@ type ApiResult = {
     volumeScore: number;
     diversityScore?: number;
     trustScore?: number;
+    socialScore?: number;
     penaltyScore?: number;
     totalScore: number;
   };
   tier: TierName;
 };
+
+function getFarcasterFid(user: unknown): number | undefined {
+  const fid = typeof user === "object" && user && "fid" in user ? Number((user as { fid?: unknown }).fid) : NaN;
+  return Number.isInteger(fid) && fid > 0 ? fid : undefined;
+}
+
+function formatProtocolLabel(category: ProtocolCategory | "none"): string {
+  if (category === "none") return "None";
+  return category === "defi" ? "DeFi" : category === "nft" ? "NFT" : category.replace(/^./, (char) => char.toUpperCase());
+}
 
 const TIER_STEPS: { name: TierName; range: string; hint: string }[] = [
   { name: "Dormant", range: "0–349", hint: "Low activity" },
@@ -82,7 +122,9 @@ export function MiniApp() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/score/base/${addr}`, { cache: "no-store" });
+      const fid = getFarcasterFid(fcUser);
+      const scoreUrl = fid ? `/api/score/base/${addr}?fid=${fid}` : `/api/score/base/${addr}`;
+      const res = await fetch(scoreUrl, { cache: "no-store" });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to calculate score");
       setResult(json as ApiResult);
@@ -292,7 +334,41 @@ export function MiniApp() {
           <Metric delay={210} label="Contracts" value={(result.uniqueContracts ?? 0).toLocaleString()} />
           <Metric delay={280} label="Volume" value={`${result.totalVolumeEth} ETH`} />
           <Metric delay={350} label="Confidence" value={`${result.confidence ?? 0}%`} />
+          <Metric delay={420} label="Protocols" value={`${result.protocolBreakdown?.categoryDiversity ?? 0} types`} />
+          <Metric
+            delay={490}
+            label="Farcaster"
+            value={result.farcasterSocial ? `+${result.breakdown.socialScore ?? 0}` : "Onchain only"}
+          />
         </div>
+
+        {result.protocolBreakdown || result.farcasterSocial ? (
+          <div className="grid gap-2.5 md:grid-cols-2">
+            <SignalCard
+              eyebrow="Protocol Mix"
+              title={formatProtocolLabel(result.protocolBreakdown?.primaryCategory ?? "none")}
+              value={`${result.protocolBreakdown?.categoryDiversity ?? 0} categories`}
+              detail={
+                result.protocolBreakdown?.topCategories?.length
+                  ? result.protocolBreakdown.topCategories
+                      .slice(0, 3)
+                      .map((item) => `${formatProtocolLabel(item.category)} ${Math.round(item.weight * 100)}%`)
+                      .join(" · ")
+                  : "No classified protocol activity yet"
+              }
+            />
+            <SignalCard
+              eyebrow="Social Signal"
+              title={result.farcasterSocial?.username ? `@${result.farcasterSocial.username}` : "Onchain-first"}
+              value={result.farcasterSocial ? `+${result.breakdown.socialScore ?? 0} score` : "Optional"}
+              detail={
+                result.farcasterSocial
+                  ? `${result.farcasterSocial.followers.toLocaleString()} followers · ${result.farcasterSocial.activeDays30}/30d active`
+                  : "Open in Farcaster to add public social context"
+              }
+            />
+          </div>
+        ) : null}
 
         <div className="rounded-2xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_44px_rgba(0,0,0,0.30)] ring-1 ring-inset ring-white/10">
           <div className="mb-3 flex items-center justify-between">
@@ -304,8 +380,9 @@ export function MiniApp() {
           <BreakRow label="Activity" value={result.breakdown.activityScore} max={170} />
           <BreakRow label="Consistency" value={result.breakdown.consistencyScore ?? 0} max={140} />
           <BreakRow label="Volume" value={result.breakdown.volumeScore} max={110} />
-          <BreakRow label="Diversity" value={result.breakdown.diversityScore ?? 0} max={140} />
+          <BreakRow label="Diversity" value={result.breakdown.diversityScore ?? 0} max={165} />
           <BreakRow label="Trust" value={result.breakdown.trustScore ?? 0} max={90} />
+          {(result.breakdown.socialScore ?? 0) > 0 ? <BreakRow label="Farcaster" value={result.breakdown.socialScore ?? 0} max={60} /> : null}
           {(result.breakdown.penaltyScore ?? 0) > 0 ? (
             <BreakRow label="Penalty" value={-(result.breakdown.penaltyScore ?? 0)} max={140} tone="danger" />
           ) : null}
@@ -670,6 +747,24 @@ function Metric({ label, value, delay = 0 }: { label: string; value: string; del
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.12),transparent_45%)]" />
       <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">{label}</p>
       <p className="mt-1.5 text-[15px] font-extrabold text-white">{value}</p>
+    </div>
+  );
+}
+
+function SignalCard({ eyebrow, title, value, detail }: { eyebrow: string; title: string; value: string; detail: string }) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-violet-300/18 bg-[linear-gradient(150deg,rgba(124,58,237,0.12),rgba(255,255,255,0.035))] p-4 shadow-[0_14px_38px_rgba(0,0,0,0.25)] ring-1 ring-inset ring-white/10 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/28">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-amber-300/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-200/85">{eyebrow}</p>
+      <div className="relative mt-2 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-base font-black text-white">{title}</p>
+          <p className="mt-1 text-[11px] font-semibold text-gray-400">{detail}</p>
+        </div>
+        <span className="shrink-0 rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 text-[11px] font-extrabold text-amber-100">
+          {value}
+        </span>
+      </div>
     </div>
   );
 }

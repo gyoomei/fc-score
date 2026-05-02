@@ -6,8 +6,41 @@ export interface BaseWalletScoreBreakdown {
   volumeScore: number;
   diversityScore: number;
   trustScore: number;
+  socialScore: number;
   penaltyScore: number;
   totalScore: number;
+}
+
+export type ProtocolCategory =
+  | "swap"
+  | "bridge"
+  | "nft"
+  | "social"
+  | "builder"
+  | "defi"
+  | "gaming"
+  | "stablecoin"
+  | "transfer"
+  | "contract"
+  | "unknown";
+
+export interface BaseProtocolBreakdown {
+  categoryCounts: Record<ProtocolCategory, number>;
+  categoryDiversity: number;
+  primaryCategory: ProtocolCategory | "none";
+  topCategories: { category: ProtocolCategory; count: number; weight: number }[];
+}
+
+export interface FarcasterSocialSignal {
+  fid: number;
+  username?: string;
+  followers: number;
+  castsSampled: number;
+  likesSampled: number;
+  activeDays30: number;
+  score: number;
+  confidence: number;
+  source: "warpcast-public";
 }
 
 export interface BaseWalletScoreResult {
@@ -23,6 +56,8 @@ export interface BaseWalletScoreResult {
   sampleSize: number;
   source: "blockscout";
   scoringVersion: "base-score-v2";
+  protocolBreakdown: BaseProtocolBreakdown;
+  farcasterSocial?: FarcasterSocialSignal;
   breakdown: BaseWalletScoreBreakdown;
   tier: "Dormant" | "Active" | "Power" | "Whale";
   insights: string[];
@@ -32,6 +67,8 @@ type BlockscoutAddressRef = {
   hash?: string;
   is_contract?: boolean;
   reputation?: string;
+  name?: string;
+  ens_domain_name?: string;
 };
 
 type BlockscoutTx = {
@@ -56,8 +93,74 @@ type BlockscoutCountersResponse = {
   token_transfers_count?: string;
 };
 
+type WarpcastUserResponse = {
+  result?: {
+    user?: {
+      fid?: number;
+      username?: string;
+      followerCount?: number;
+      followingCount?: number;
+    };
+  };
+};
+
+type WarpcastCastsResponse = {
+  result?: {
+    casts?: {
+      timestamp?: string | number;
+      reactions?: { count?: number };
+    }[];
+  };
+};
+
 const MAX_TRANSACTION_PAGES = 8;
 const PAGE_SIZE = 50;
+
+const PROTOCOL_CATEGORY_ORDER: ProtocolCategory[] = [
+  "swap",
+  "bridge",
+  "nft",
+  "social",
+  "builder",
+  "defi",
+  "gaming",
+  "stablecoin",
+  "transfer",
+  "contract",
+  "unknown",
+];
+
+const SWAP_SELECTORS = new Set([
+  "0x38ed1739",
+  "0x04e45aaf",
+  "0x414bf389",
+  "0x7ff36ab5",
+  "0x18cbafe5",
+  "0x5c11d795",
+  "0x128acb08",
+  "0x3593564c",
+]);
+
+const NFT_SELECTORS = new Set([
+  "0xa0712d68",
+  "0x40c10f19",
+  "0x1249c58b",
+  "0x6a627842",
+  "0x9dbb844d",
+]);
+
+const TRANSFER_SELECTORS = new Set(["0xa9059cbb", "0x23b872dd", "0x095ea7b3"]);
+
+const CATEGORY_KEYWORDS: { category: ProtocolCategory; keywords: string[] }[] = [
+  { category: "bridge", keywords: ["bridge", "portal", "l1standardbridge", "optimismportal", "deposit", "withdraw"] },
+  { category: "swap", keywords: ["swap", "uniswap", "aerodrome", "velodrome", "pancake", "odos", "1inch", "router", "quoter"] },
+  { category: "nft", keywords: ["mint", "collect", "nft", "erc721", "erc1155", "zora", "opensea", "manifold", "sound"] },
+  { category: "social", keywords: ["farcaster", "warpcast", "frames", "frame", "paragraph", "hypersub", "friendtech", "social"] },
+  { category: "builder", keywords: ["create", "deploy", "factory", "proxy", "clone", "safe", "module", "contract"] },
+  { category: "defi", keywords: ["lend", "borrow", "stake", "staking", "vault", "pool", "deposit", "withdraw", "aave", "compound", "morpho", "yearn"] },
+  { category: "gaming", keywords: ["game", "gaming", "quest", "loot", "match", "tournament"] },
+  { category: "stablecoin", keywords: ["usdc", "usdbc", "dai", "usdt", "stable"] },
+];
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
@@ -68,9 +171,9 @@ function tierFromScore(score: number): BaseWalletScoreResult["tier"] {
   return "Dormant";
 }
 
-function parseIsoToMs(iso?: string): number {
-  if (!iso) return 0;
-  const t = new Date(iso).getTime();
+function parseIsoToMs(value?: string | number): number {
+  if (!value) return 0;
+  const t = typeof value === "number" ? value : new Date(value).getTime();
   return Number.isFinite(t) ? t : 0;
 }
 
@@ -94,6 +197,77 @@ function addressHash(ref?: BlockscoutAddressRef | null): string | null {
   return hash && /^0x[a-fA-F0-9]{40}$/.test(hash) ? hash.toLowerCase() : null;
 }
 
+function methodSelector(tx: BlockscoutTx): string {
+  const input = tx.raw_input?.toLowerCase();
+  return input && input.length >= 10 ? input.slice(0, 10) : "";
+}
+
+function searchableText(tx: BlockscoutTx): string {
+  return [
+    tx.method,
+    tx.to?.name,
+    tx.to?.ens_domain_name,
+    tx.to?.reputation,
+    tx.created_contract?.name,
+    tx.created_contract?.reputation,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function classifyProtocol(tx: BlockscoutTx): ProtocolCategory {
+  if (tx.created_contract) return "builder";
+
+  const selector = methodSelector(tx);
+  if (SWAP_SELECTORS.has(selector)) return "swap";
+  if (NFT_SELECTORS.has(selector)) return "nft";
+  if (TRANSFER_SELECTORS.has(selector)) return "transfer";
+
+  const text = searchableText(tx);
+  for (const rule of CATEGORY_KEYWORDS) {
+    if (rule.keywords.some((keyword) => text.includes(keyword))) return rule.category;
+  }
+
+  const valueWei = (() => {
+    try {
+      return BigInt(tx.value || "0");
+    } catch {
+      return 0n;
+    }
+  })();
+
+  if (!tx.to?.is_contract && valueWei > 0n) return "transfer";
+  if (tx.to?.is_contract || selector) return "contract";
+  return "unknown";
+}
+
+function emptyCategoryCounts(): Record<ProtocolCategory, number> {
+  return PROTOCOL_CATEGORY_ORDER.reduce((acc, category) => {
+    acc[category] = 0;
+    return acc;
+  }, {} as Record<ProtocolCategory, number>);
+}
+
+function buildProtocolBreakdown(categoryCounts: Record<ProtocolCategory, number>): BaseProtocolBreakdown {
+  const ranked = PROTOCOL_CATEGORY_ORDER
+    .map((category) => ({ category, count: categoryCounts[category] ?? 0 }))
+    .filter((item) => item.count > 0)
+    .sort((a, b) => b.count - a.count);
+  const totalClassified = ranked.reduce((sum, item) => sum + item.count, 0);
+  const meaningfulCategories = ranked.filter((item) => item.category !== "unknown" && item.category !== "contract" && item.count > 0);
+
+  return {
+    categoryCounts,
+    categoryDiversity: meaningfulCategories.length,
+    primaryCategory: ranked[0]?.category ?? "none",
+    topCategories: ranked.slice(0, 4).map((item) => ({
+      ...item,
+      weight: totalClassified > 0 ? Number((item.count / totalClassified).toFixed(2)) : 0,
+    })),
+  };
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url, {
     cache: "no-store",
@@ -103,7 +277,7 @@ async function fetchJson<T>(url: string): Promise<T> {
     },
   });
 
-  if (!res.ok) throw new Error(`Blockscout HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as T;
 }
 
@@ -139,6 +313,53 @@ async function fetchBlockscoutCounters(address: string): Promise<BlockscoutCount
   return fetchJson<BlockscoutCountersResponse>(url);
 }
 
+async function fetchFarcasterSocialSignal(fid?: number): Promise<FarcasterSocialSignal | undefined> {
+  if (!fid || !Number.isInteger(fid) || fid <= 0) return undefined;
+
+  try {
+    const [userPayload, castsPayload] = await Promise.all([
+      fetchJson<WarpcastUserResponse>(`https://api.warpcast.com/v2/user-by-fid?fid=${fid}`),
+      fetchJson<WarpcastCastsResponse>(`https://api.warpcast.com/v2/casts?fid=${fid}&limit=50`),
+    ]);
+
+    const user = userPayload.result?.user;
+    const casts = Array.isArray(castsPayload.result?.casts) ? castsPayload.result.casts : [];
+    const followers = safeNumber(String(user?.followerCount ?? 0));
+    const following = safeNumber(String(user?.followingCount ?? 0));
+    const likesSampled = casts.reduce((sum, cast) => sum + safeNumber(String(cast.reactions?.count ?? 0)), 0);
+    const now = Date.now();
+    const days30Cutoff = now - 30 * 86_400_000;
+    const activeDays = new Set<string>();
+
+    for (const cast of casts) {
+      const tsMs = parseIsoToMs(cast.timestamp);
+      if (tsMs >= days30Cutoff) activeDays.add(new Date(tsMs).toISOString().slice(0, 10));
+    }
+
+    const followerScore = logScore(followers, 5000, 24);
+    const castScore = logScore(casts.length, 100, 12);
+    const engagementScore = logScore(likesSampled, 1000, 12);
+    const activeScore = Math.round(clamp((activeDays.size / 12) * 12, 0, 12));
+    const graphPenalty = following > Math.max(80, followers * 8) ? 8 : 0;
+    const score = Math.round(clamp(followerScore + castScore + engagementScore + activeScore - graphPenalty, 0, 60));
+    const confidence = Math.round(clamp(45 + Math.min(casts.length / 50, 1) * 35 + (followers > 0 ? 20 : 0), 0, 100));
+
+    return {
+      fid,
+      username: user?.username,
+      followers,
+      castsSampled: casts.length,
+      likesSampled,
+      activeDays30: activeDays.size,
+      score,
+      confidence,
+      source: "warpcast-public",
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function buildInsights(params: {
   totalScore: number;
   confidence: number;
@@ -146,6 +367,8 @@ function buildInsights(params: {
   activeDays30: number;
   uniqueContracts: number;
   penaltyScore: number;
+  protocolBreakdown: BaseProtocolBreakdown;
+  farcasterSocial?: FarcasterSocialSignal;
 }): string[] {
   const insights: string[] = [];
 
@@ -153,23 +376,28 @@ function buildInsights(params: {
   else if (params.confidence >= 65) insights.push("Medium-confidence score; more history improves precision.");
   else insights.push("Low-confidence score because the wallet has limited indexed activity.");
 
+  if (params.protocolBreakdown.categoryDiversity >= 4) insights.push("Protocol mix spans multiple Base categories.");
+  else if (params.txCount >= 20) insights.push("Activity exists, but protocol category diversity is still narrow.");
+
+  if (params.farcasterSocial?.score) insights.push("Farcaster activity adds an identity-backed social boost.");
+  else insights.push("Farcaster social signal was unavailable, so scoring stayed onchain-first.");
+
   if (params.activeDays30 >= 12) insights.push("Strong recent Base consistency.");
   else if (params.activeDays30 <= 2) insights.push("Recent activity is light, so consistency is capped.");
 
-  if (params.uniqueContracts >= 20) insights.push("Healthy contract diversity across Base apps.");
-  else if (params.txCount >= 20) insights.push("Activity exists, but protocol diversity is still narrow.");
-
+  if (params.uniqueContracts >= 20 && params.protocolBreakdown.categoryDiversity >= 3) insights.push("Healthy contract and protocol diversity across Base apps.");
   if (params.penaltyScore > 0) insights.push("Burst or repetitive patterns reduced the final score.");
   if (params.totalScore >= 850) insights.push("Top-tier onchain footprint detected.");
 
   return insights.slice(0, 4);
 }
 
-export async function calculateBaseWalletScore(address: string): Promise<BaseWalletScoreResult> {
+export async function calculateBaseWalletScore(address: string, options: { fid?: number } = {}): Promise<BaseWalletScoreResult> {
   const normalizedAddress = address.toLowerCase();
-  const [txs, counters] = await Promise.all([
+  const [txs, counters, farcasterSocial] = await Promise.all([
     fetchBlockscoutTxs(normalizedAddress),
     fetchBlockscoutCounters(normalizedAddress).catch(() => ({} as BlockscoutCountersResponse)),
+    fetchFarcasterSocialSignal(options.fid),
   ]);
 
   const sampledTxCount = txs.length;
@@ -194,6 +422,7 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
   const contractSet = new Set<string>();
   const valueDates90 = new Set<string>();
   const dailyCounts = new Map<string, number>();
+  const categoryCounts = emptyCategoryCounts();
   let totalWei = 0n;
   let failedTxCount = 0;
   let contractInteractions = 0;
@@ -215,6 +444,9 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
     if (createdHash) contractSet.add(createdHash);
     if (tx.to?.is_contract || tx.created_contract) contractInteractions += 1;
 
+    const category = classifyProtocol(tx);
+    categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+
     try {
       const wei = BigInt(tx.value || "0");
       totalWei += wei;
@@ -224,6 +456,7 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
     }
   }
 
+  const protocolBreakdown = buildProtocolBreakdown(categoryCounts);
   const activeDays30 = activeDates30.size;
   const activeDays90 = activeDates90.size;
   const uniqueContracts = contractSet.size;
@@ -236,22 +469,25 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
   const burstRatio = sampledTxCount > 0 ? maxDailyTx / sampledTxCount : 0;
   const failedRatio = sampledTxCount > 0 ? failedTxCount / sampledTxCount : 0;
   const repetitiveRatio = sampledTxCount >= 30 && uniqueContracts <= 2 ? 0.35 : 0;
+  const narrowProtocolPenalty = sampledTxCount >= 40 && protocolBreakdown.categoryDiversity <= 1 ? 0.18 : 0;
 
-  const walletAgeScore = Math.round(clamp(Math.sqrt(walletAgeDays / 730) * 160, 0, 160));
-  const txCountScore = logScore(txCount, 5000, 220);
-  const activityScore = scoreActiveDays(activeDays30, 170);
-  const consistencyScore = Math.round(clamp((activeDays90 / 45) * 120 + Math.min(valueDates90.size, 12) * 2, 0, 140));
-  const volumeScore = logScore(totalVolumeEth, 250, 110);
-  const diversityScore = Math.round(clamp(logScore(uniqueContracts, 120, 120) + logScore(tokenTransferCount, 1000, 20), 0, 140));
-  const trustScore = Math.round(clamp(confidence * 0.6 + Math.min(contractInteractions, 50) * 0.8, 0, 90));
+  const walletAgeScore = Math.round(clamp(Math.sqrt(walletAgeDays / 730) * 145, 0, 145));
+  const txCountScore = logScore(txCount, 5000, 205);
+  const activityScore = scoreActiveDays(activeDays30, 160);
+  const consistencyScore = Math.round(clamp((activeDays90 / 45) * 112 + Math.min(valueDates90.size, 12) * 2, 0, 132));
+  const volumeScore = logScore(totalVolumeEth, 250, 105);
+  const protocolDiversityScore = Math.round(clamp((protocolBreakdown.categoryDiversity / 7) * 55, 0, 55));
+  const diversityScore = Math.round(clamp(logScore(uniqueContracts, 120, 92) + logScore(tokenTransferCount, 1000, 18) + protocolDiversityScore, 0, 165));
+  const trustScore = Math.round(clamp(confidence * 0.5 + Math.min(contractInteractions, 50) * 0.65 + protocolBreakdown.categoryDiversity * 5, 0, 88));
+  const socialScore = farcasterSocial?.score ?? 0;
   const penaltyScore = Math.round(clamp(
-    Math.max(0, burstRatio - 0.45) * 120 + failedRatio * 80 + repetitiveRatio * 100,
+    Math.max(0, burstRatio - 0.45) * 120 + failedRatio * 80 + repetitiveRatio * 100 + narrowProtocolPenalty * 100,
     0,
     140,
   ));
 
   const totalScore = clamp(
-    walletAgeScore + txCountScore + activityScore + consistencyScore + volumeScore + diversityScore + trustScore - penaltyScore,
+    walletAgeScore + txCountScore + activityScore + consistencyScore + volumeScore + diversityScore + trustScore + socialScore - penaltyScore,
     0,
     1000,
   );
@@ -269,6 +505,8 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
     sampleSize: sampledTxCount,
     source: "blockscout",
     scoringVersion: "base-score-v2",
+    protocolBreakdown,
+    farcasterSocial,
     breakdown: {
       walletAgeScore,
       txCountScore,
@@ -277,10 +515,11 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
       volumeScore,
       diversityScore,
       trustScore,
+      socialScore,
       penaltyScore,
       totalScore,
     },
     tier: tierFromScore(totalScore),
-    insights: buildInsights({ totalScore, confidence, txCount, activeDays30, uniqueContracts, penaltyScore }),
+    insights: buildInsights({ totalScore, confidence, txCount, activeDays30, uniqueContracts, penaltyScore, protocolBreakdown, farcasterSocial }),
   };
 }

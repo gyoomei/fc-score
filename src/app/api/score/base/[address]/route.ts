@@ -6,11 +6,14 @@ function isValidAddress(address: string): boolean {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ address: string }> },
 ) {
   try {
     const { address } = await params;
+    const url = new URL(req.url);
+    const fidRaw = url.searchParams.get("fid");
+    const fid = fidRaw && /^\d+$/.test(fidRaw) ? Number(fidRaw) : undefined;
 
     if (!isValidAddress(address)) {
       return NextResponse.json(
@@ -19,7 +22,7 @@ export async function GET(
       );
     }
 
-    const result = await calculateBaseWalletScore(address);
+    const result = await calculateBaseWalletScore(address, { fid });
 
     return NextResponse.json(result, {
       status: 200,
