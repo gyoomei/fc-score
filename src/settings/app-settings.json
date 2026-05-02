@@ -1,13 +1,13 @@
 {
-  "name": "FC Score",
-  "shortName": "FC Score",
-  "subtitle": "Your Farcaster Power Score",
-  "description": "Discover your Farcaster influence score. Calculated from followers, likes, replies, account age, and engagement with prestige tiers from Newcomer to Legend.",
-  "shortDescription": "Calculate your Farcaster influence score and tier",
-  "primaryCategory": "social",
-  "tags": ["farcaster", "score", "social", "analytics", "identity"],
+  "name": "Base Score",
+  "shortName": "Base Score",
+  "subtitle": "Your Onchain Base Wallet Score",
+  "description": "Measure your Base wallet strength from real onchain activity. Base Score analyzes wallet age, transaction activity, consistency, and volume to generate your wallet score.",
+  "shortDescription": "Check your onchain Base wallet score instantly",
+  "primaryCategory": "finance",
+  "tags": ["base", "wallet", "onchain", "score", "analytics"],
   "splashBackgroundColor": "#0a0a0f",
-  "tagline": "Your Farcaster power meter",
+  "tagline": "Onchain signal. One Base score.",
   "requiredChains": ["eip155:8453", "eip155:1"],
-  "shareButtonTitle": "See My Score"
+  "shareButtonTitle": "See My Base Score"
 }

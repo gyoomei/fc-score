@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { ScoreLoading } from "./components/score-loading";
 import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
 
@@ -57,24 +58,90 @@ export function MiniApp() {
     if (hasAutoFetchedRef.current) return;
     if (userLoading) return;
 
-    const u = (fcUser ?? {}) as Record<string, unknown>;
-    const arr1 = Array.isArray(u["verifications"]) ? (u["verifications"] as unknown[]) : [];
-    const arr2 = Array.isArray(u["verifiedAddresses"]) ? (u["verifiedAddresses"] as unknown[]) : [];
-    const arr3 = Array.isArray(u["ethAddresses"]) ? (u["ethAddresses"] as unknown[]) : [];
-    const primary = typeof u["custodyAddress"] === "string" ? u["custodyAddress"] : "";
+    const pickAddressFromUnknown = (input: unknown): string | null => {
+      if (!input) return null;
+      if (typeof input === "string") {
+        return /^0x[a-fA-F0-9]{40}$/.test(input) ? input : null;
+      }
+      if (Array.isArray(input)) {
+        for (const item of input) {
+          const found = pickAddressFromUnknown(item);
+          if (found) return found;
+        }
+        return null;
+      }
+      if (typeof input === "object") {
+        const obj = input as Record<string, unknown>;
+        for (const key of [
+          "address",
+          "addr",
+          "ethAddress",
+          "ethereumAddress",
+          "custodyAddress",
+          "walletAddress",
+        ]) {
+          const found = pickAddressFromUnknown(obj[key]);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
 
-    const candidate = [primary, ...arr1, ...arr2, ...arr3].find(
-      (v): v is string => typeof v === "string" && /^0x[a-fA-F0-9]{40}$/.test(v),
-    );
+    const getCandidateAddress = async () => {
+      const u = (fcUser ?? {}) as Record<string, unknown>;
 
-    if (!candidate) {
-      setError("Wallet Base tidak ditemukan di verifikasi Farcaster");
-      return;
-    }
+      const fromUserFields = pickAddressFromUnknown([
+        u["custodyAddress"],
+        u["verifications"],
+        u["verifiedAddresses"],
+        u["ethAddresses"],
+      ]);
+      if (fromUserFields) return fromUserFields;
 
-    setResolvedAddress(candidate);
-    hasAutoFetchedRef.current = true;
-    void fetchScore(candidate);
+      try {
+        const provider = await sdk.wallet.getEthereumProvider();
+        if (provider?.request) {
+          // 1) Silent first: in many clients this works without user gesture
+          try {
+            const accountsSilentRaw = (await provider.request({
+              method: "eth_accounts",
+            })) as unknown;
+            const fromSilent = pickAddressFromUnknown(accountsSilentRaw);
+            if (fromSilent) return fromSilent;
+          } catch (err) {
+            console.warn("eth_accounts failed", err);
+          }
+
+          // 2) Interactive fallback
+          try {
+            const accountsRaw = (await provider.request({
+              method: "eth_requestAccounts",
+            })) as unknown;
+            const fromRequest = pickAddressFromUnknown(accountsRaw);
+            if (fromRequest) return fromRequest;
+          } catch (err) {
+            console.warn("eth_requestAccounts failed", err);
+          }
+        }
+      } catch (err) {
+        console.warn("Wallet provider not available from Farcaster SDK", err);
+      }
+
+      return null;
+    };
+
+    void (async () => {
+      const candidate = await getCandidateAddress();
+
+      if (!candidate) {
+        setError("Wallet Base tidak ditemukan dari context/verifikasi Farcaster");
+        return;
+      }
+
+      setResolvedAddress(candidate);
+      hasAutoFetchedRef.current = true;
+      void fetchScore(candidate);
+    })();
   }, [fcUser, userLoading]);
 
   const showLoading = userLoading || loading;

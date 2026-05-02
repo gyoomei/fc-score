@@ -35,7 +35,7 @@ export async function GET(
         position: "relative",
       }}
     >
-      {/* FC Score branding - top right */}
+      {/* Base Score branding - top right */}
       <div
         style={{
           display: "flex",
@@ -56,7 +56,7 @@ export async function GET(
             textTransform: "uppercase",
           }}
         >
-          FC Score
+          Base Score
         </div>
       </div>
 
