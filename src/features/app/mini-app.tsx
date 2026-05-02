@@ -195,7 +195,7 @@ export function MiniApp() {
     }
   };
 
-  const showLoading = userLoading || loading;
+  const showLoading = !result && (userLoading || loading);
 
   if (showLoading) {
     return (

@@ -14,8 +14,8 @@ export function ScoreLoading() {
 
   useEffect(() => {
     const stepInterval = setInterval(() => {
-      setStep((s) => (s + 1) % STEPS.length);
-    }, 1100);
+      setStep((s) => (s < STEPS.length - 1 ? s + 1 : s));
+    }, 1200);
 
     return () => clearInterval(stepInterval);
   }, []);
