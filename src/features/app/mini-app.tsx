@@ -161,9 +161,10 @@ export function MiniApp() {
     const text = `I got ${score} (${result.tier}) on Base Wallet Score ⚡\n${appUrl}\nCheck yours 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
+    const shareVersion = Date.now().toString();
     const shareCardUrl =
       appUrl && result
-        ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}&pfp=${encodeURIComponent(avatar)}`
+        ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}&pfp=${encodeURIComponent(avatar)}&v=${encodeURIComponent(shareVersion)}`
         : "";
 
     const embeds: [] | [string] | [string, string] = shareCardUrl
