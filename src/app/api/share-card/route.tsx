@@ -19,6 +19,56 @@ function safeText(input: string, fallback: string, maxLen = 32): string {
   return value.slice(0, maxLen);
 }
 
+function safeImageUrl(input: string): string {
+  const value = (input || "").trim();
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  return "";
+}
+
+function tierTheme(tier: string): {
+  cardBackground: string;
+  glowA: string;
+  glowB: string;
+  scoreGradient: string;
+  tierBorder: string;
+} {
+  switch (tier) {
+    case "Whale":
+      return {
+        cardBackground: "linear-gradient(145deg, rgba(56,26,92,0.78), rgba(46,92,86,0.72))",
+        glowA: "rgba(45,212,191,0.30)",
+        glowB: "rgba(251,191,36,0.24)",
+        scoreGradient: "linear-gradient(90deg, #F8FAFC 0%, #A7F3D0 45%, #FDE68A 100%)",
+        tierBorder: "rgba(45,212,191,0.55)",
+      };
+    case "Power":
+      return {
+        cardBackground: "linear-gradient(145deg, rgba(36,22,80,0.8), rgba(89,38,120,0.72))",
+        glowA: "rgba(168,85,247,0.34)",
+        glowB: "rgba(251,191,36,0.20)",
+        scoreGradient: "linear-gradient(90deg, #FFFFFF 0%, #DDD6FE 52%, #FDE68A 100%)",
+        tierBorder: "rgba(167,139,250,0.5)",
+      };
+    case "Active":
+      return {
+        cardBackground: "linear-gradient(145deg, rgba(21,28,72,0.8), rgba(28,66,107,0.7))",
+        glowA: "rgba(96,165,250,0.28)",
+        glowB: "rgba(59,130,246,0.24)",
+        scoreGradient: "linear-gradient(90deg, #FFFFFF 0%, #BFDBFE 55%, #93C5FD 100%)",
+        tierBorder: "rgba(96,165,250,0.45)",
+      };
+    default:
+      return {
+        cardBackground: "linear-gradient(145deg, rgba(35,35,48,0.82), rgba(58,58,77,0.68))",
+        glowA: "rgba(163,163,163,0.22)",
+        glowB: "rgba(148,163,184,0.18)",
+        scoreGradient: "linear-gradient(90deg, #F8FAFC 0%, #E2E8F0 52%, #CBD5E1 100%)",
+        tierBorder: "rgba(203,213,225,0.42)",
+      };
+  }
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -29,6 +79,8 @@ export async function GET(req: Request) {
   const tx = Math.max(0, Number(searchParams.get("tx") || 0));
   const activeDays = Math.max(0, Number(searchParams.get("active") || 0));
   const volume = Math.max(0, Number(searchParams.get("volume") || 0));
+  const pfp = safeImageUrl(searchParams.get("pfp") || "");
+  const theme = tierTheme(tier);
 
   return new ImageResponse(
     (
@@ -38,7 +90,7 @@ export async function GET(req: Request) {
           height: "800px",
           display: "flex",
           position: "relative",
-          background: "linear-gradient(140deg, #080913 0%, #110A24 50%, #1D0F33 100%)",
+          background: theme.cardBackground,
           color: "white",
           padding: "56px",
           fontFamily: "Inter, Arial, sans-serif",
@@ -49,7 +101,7 @@ export async function GET(req: Request) {
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(circle at 20% 20%, rgba(168,85,247,0.28), transparent 42%), radial-gradient(circle at 82% 16%, rgba(251,191,36,0.22), transparent 35%)",
+              `radial-gradient(circle at 20% 20%, ${theme.glowA}, transparent 42%), radial-gradient(circle at 82% 16%, ${theme.glowB}, transparent 35%)`,
           }}
         />
 
@@ -80,13 +132,24 @@ export async function GET(req: Request) {
               >
                 Base Wallet Score
               </div>
-              <div style={{ fontSize: "78px", fontWeight: 900, lineHeight: 1 }}>{score}</div>
+              <div
+                style={{
+                  fontSize: "78px",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  backgroundImage: theme.scoreGradient,
+                  WebkitBackgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                {score}
+              </div>
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 <div
                   style={{
                     fontSize: "26px",
                     fontWeight: 700,
-                    border: "1px solid rgba(255,255,255,0.25)",
+                    border: `1px solid ${theme.tierBorder}`,
                     borderRadius: "999px",
                     padding: "8px 18px",
                     background: "rgba(255,255,255,0.08)",
@@ -110,9 +173,26 @@ export async function GET(req: Request) {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px" }}>
-              <div style={{ fontSize: "30px", fontWeight: 800 }}>{handle.startsWith("@") ? handle : `@${handle}`}</div>
-              <div style={{ fontSize: "18px", opacity: 0.9 }}>{address}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              {pfp ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={pfp}
+                  alt="pfp"
+                  width={84}
+                  height={84}
+                  style={{
+                    borderRadius: "999px",
+                    border: "2px solid rgba(255,255,255,0.35)",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : null}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px" }}>
+                <div style={{ fontSize: "30px", fontWeight: 800 }}>{handle.startsWith("@") ? handle : `@${handle}`}</div>
+                <div style={{ fontSize: "18px", opacity: 0.9 }}>{address}</div>
+              </div>
             </div>
           </div>
 
