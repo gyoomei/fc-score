@@ -350,7 +350,14 @@ export function MiniApp() {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-dvh w-full overflow-hidden px-4 pb-10" style={{ background: "radial-gradient(1200px 500px at 50% -10%, rgba(124,58,237,0.2), transparent), linear-gradient(180deg, #090912 0%, #0a0a0f 45%, #07070b 100%)" }}>
+    <div
+      data-font="monograph-uploaded"
+      className="font-monograph-uploaded relative min-h-dvh w-full overflow-hidden px-4 pb-10"
+      style={{
+        background: "radial-gradient(1200px 500px at 50% -10%, rgba(124,58,237,0.2), transparent), linear-gradient(180deg, #090912 0%, #0a0a0f 45%, #07070b 100%)",
+        fontFamily: "var(--font-monograph)",
+      }}
+    >
       <style jsx global>{`
         @keyframes shimmerX {
           0% {
