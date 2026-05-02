@@ -130,11 +130,11 @@ type WarpcastCastsResponse = {
   };
 };
 
-// Keep the first load fast in Mini App clients. Counters still provide full tx totals,
-// while the latest 150 indexed transactions are enough for recency/protocol signals.
-const MAX_TRANSACTION_PAGES = 3;
+// Use the full scoring sample so protocol, recency, and social signals stay as complete as before.
+// The legacy Blockscout fast path below still reduces round trips without reducing sample size.
+const MAX_TRANSACTION_PAGES = 8;
 const PAGE_SIZE = 50;
-const FARCASTER_CAST_LIMIT = 25;
+const FARCASTER_CAST_LIMIT = 50;
 
 const PROTOCOL_CATEGORY_ORDER: ProtocolCategory[] = [
   "swap",
