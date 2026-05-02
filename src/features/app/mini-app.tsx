@@ -240,25 +240,19 @@ export function MiniApp() {
     const appUrl = origin.includes("localhost") || origin.includes("127.0.0.1") ? publicConfig.homeUrl : origin;
     const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt from live Base activity, consistency, diversity, and trust signals.\nCan you beat my score? 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
-    const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareVersion = Date.now().toString();
-    const buildShareUrl = (includeAvatar: boolean) => {
-      const params = new URLSearchParams({
-        personalize: "true",
-        score: String(score),
-        tier: result.tier,
-        username: handle.replace(/^@/, ""),
-        address: shortenAddress(result.address),
-        tx: String(result.txCount),
-        active: String(result.activeDays30),
-        volume: String(result.totalVolumeEth),
-        v: shareVersion,
-      });
-      if (includeAvatar && avatar) params.set("pfp", avatar);
-      return `${appUrl}/?${params.toString()}`;
-    };
-    const sharePageUrlWithAvatar = buildShareUrl(true);
-    const sharePageUrl = sharePageUrlWithAvatar.length <= 1024 ? sharePageUrlWithAvatar : buildShareUrl(false);
+    const params = new URLSearchParams({
+      personalize: "true",
+      score: String(score),
+      tier: result.tier,
+      username: handle.replace(/^@/, ""),
+      address: shortenAddress(result.address),
+      tx: String(result.txCount),
+      active: String(result.activeDays30),
+      volume: String(result.totalVolumeEth),
+      v: shareVersion,
+    });
+    const sharePageUrl = `${appUrl}/?${params.toString()}`;
     const embeds: [] | [string] = [sharePageUrl];
 
     const fallbackToWarpcast = async () => {

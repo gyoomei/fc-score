@@ -53,12 +53,12 @@ export async function getFarcasterPageMetadata({
   const farcasterImageUrlValue = personalizedShareCardUrl || `${shareImageRoot}/farcaster${conditionalQueryString}`;
 
   const embed: MiniAppEmbedNext = {
-    version: "next",
+    version: "1",
     imageUrl: farcasterImageUrlValue,
     button: {
       title: buttonTitle,
       action: {
-        type: "launch_miniapp",
+        type: "launch_frame",
         name: title,
         url: pagePath,
         splashImageUrl,
