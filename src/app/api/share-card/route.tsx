@@ -118,6 +118,7 @@ export async function GET(req: Request) {
         <div
           style={{
             position: "absolute",
+            display: "flex",
             inset: 0,
             background:
               `radial-gradient(circle at 20% 20%, ${theme.glowA}, transparent 42%), radial-gradient(circle at 82% 16%, ${theme.glowB}, transparent 35%)`,
@@ -126,7 +127,6 @@ export async function GET(req: Request) {
 
         <div
           style={{
-            zIndex: 1,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -142,6 +142,7 @@ export async function GET(req: Request) {
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div
                 style={{
+                  display: "flex",
                   fontSize: "24px",
                   letterSpacing: "0.22em",
                   textTransform: "uppercase",
@@ -153,12 +154,12 @@ export async function GET(req: Request) {
               </div>
               <div
                 style={{
+                  display: "flex",
                   fontSize: "78px",
                   fontWeight: 900,
                   lineHeight: 1,
-                  backgroundImage: theme.scoreGradient,
-                  WebkitBackgroundClip: "text",
-                  color: "transparent",
+                  color: "#F8FAFC",
+                  textShadow: `0 0 28px ${theme.glowB}`,
                 }}
               >
                 {score}
@@ -166,6 +167,7 @@ export async function GET(req: Request) {
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 <div
                   style={{
+                    display: "flex",
                     fontSize: "26px",
                     fontWeight: 700,
                     border: `1px solid ${theme.tierBorder}`,
@@ -178,6 +180,7 @@ export async function GET(req: Request) {
                 </div>
                 <div
                   style={{
+                    display: "flex",
                     fontSize: "18px",
                     fontWeight: 700,
                     border: "1px solid rgba(16,185,129,0.35)",
@@ -209,8 +212,8 @@ export async function GET(req: Request) {
                 />
               ) : null}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px" }}>
-                <div style={{ fontSize: "30px", fontWeight: 800 }}>{handle.startsWith("@") ? handle : `@${handle}`}</div>
-                <div style={{ fontSize: "18px", opacity: 0.9 }}>{address}</div>
+                <div style={{ display: "flex", fontSize: "30px", fontWeight: 800 }}>{handle.startsWith("@") ? handle : `@${handle}`}</div>
+                <div style={{ display: "flex", fontSize: "18px", opacity: 0.9 }}>{address}</div>
               </div>
             </div>
           </div>
@@ -228,14 +231,15 @@ export async function GET(req: Request) {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ fontSize: "14px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(209,213,219,0.9)" }}>
+                <div style={{ display: "flex", fontSize: "14px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(209,213,219,0.9)" }}>
                   Tier Progress
                 </div>
-                <div style={{ fontSize: "14px", color: "#D1FAE5", fontWeight: 700 }}>{tierProgress.label}</div>
+                <div style={{ display: "flex", fontSize: "14px", color: "#D1FAE5", fontWeight: 700 }}>{tierProgress.label}</div>
               </div>
-              <div style={{ height: "10px", borderRadius: "999px", background: "rgba(255,255,255,0.14)", overflow: "hidden" }}>
+              <div style={{ display: "flex", height: "10px", borderRadius: "999px", background: "rgba(255,255,255,0.14)", overflow: "hidden" }}>
                 <div
                   style={{
+                    display: "flex",
                     width: `${tierProgress.progressPct}%`,
                     height: "100%",
                     borderRadius: "999px",
@@ -264,10 +268,10 @@ export async function GET(req: Request) {
                     gap: "8px",
                   }}
                 >
-                  <div style={{ fontSize: "16px", color: "rgba(209,213,219,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <div style={{ display: "flex", fontSize: "16px", color: "rgba(209,213,219,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {item.label}
                   </div>
-                  <div style={{ fontSize: "36px", fontWeight: 800 }}>{item.value}</div>
+                  <div style={{ display: "flex", fontSize: "36px", fontWeight: 800 }}>{item.value}</div>
                 </div>
               ))}
             </div>
