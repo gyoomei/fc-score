@@ -22,6 +22,11 @@ type ApiResult = {
   tier: "Dormant" | "Active" | "Power" | "Whale";
 };
 
+function shortenAddress(value: string): string {
+  if (!/^0x[a-fA-F0-9]{40}$/.test(value)) return value;
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+
 export function MiniApp() {
   const { data: fcUser, isLoading: userLoading } = useFarcasterUser();
   const [loading, setLoading] = useState(false);
@@ -145,11 +150,22 @@ export function MiniApp() {
     const score = result.breakdown.totalScore;
     const text = `I got ${score} (${result.tier}) on Base Wallet Score ⚡\nCheck yours 👇`;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const handle = (fcUser as { username?: string } | null)?.username || "base-user";
+    const shareCardUrl =
+      appUrl && result
+        ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&tier=${encodeURIComponent(result.tier)}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}`
+        : "";
+
+    const embeds: [] | [string] | [string, string] = shareCardUrl
+      ? ([appUrl, shareCardUrl] as [string, string])
+      : appUrl
+        ? ([appUrl] as [string])
+        : [];
 
     try {
       await sdk.actions.composeCast({
         text,
-        embeds: appUrl ? [appUrl] : undefined,
+        embeds,
       });
     } catch {
       try {
