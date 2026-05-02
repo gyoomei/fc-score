@@ -1,26 +1,51 @@
 @import "@neynar/ui/styles";
 
 @font-face {
-  font-family: "MonographForced";
-  src: url("/fonts/monograph-forced-20260502.ttf?v=only-monograph-20260502") format("truetype");
-  font-weight: 100 900;
+  font-family: "SoraBaseScore";
+  src: url("/fonts/sora-400-20260502.ttf?v=sora-base-score-20260502") format("truetype");
+  font-weight: 400;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 
 @font-face {
-  font-family: "MonographUploaded";
-  src: url("/fonts/monograph-forced-20260502.ttf?v=only-monograph-20260502") format("truetype");
-  font-weight: 100 900;
+  font-family: "SoraBaseScore";
+  src: url("/fonts/sora-500-20260502.ttf?v=sora-base-score-20260502") format("truetype");
+  font-weight: 500;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SoraBaseScore";
+  src: url("/fonts/sora-600-20260502.ttf?v=sora-base-score-20260502") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SoraBaseScore";
+  src: url("/fonts/sora-700-20260502.ttf?v=sora-base-score-20260502") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SoraBaseScore";
+  src: url("/fonts/sora-800-20260502.ttf?v=sora-base-score-20260502") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
 }
 
 :root {
-  --font-monograph: "MonographForced";
-  --font-sans: var(--font-monograph);
-  --font-mono: var(--font-monograph);
-  --font-sketch: var(--font-monograph);
+  --font-sora: "SoraBaseScore";
+  --font-monograph: var(--font-sora);
+  --font-sans: var(--font-sora);
+  --font-mono: var(--font-sora);
+  --font-sketch: var(--font-sora);
 
   /* Dark Luxury Color Palette */
   --background: #0a0a0f;
@@ -299,7 +324,10 @@ svg *,
 .sketch-button,
 .sketch-input,
 .font-monograph-uploaded,
+.font-sora-base-score,
 [data-font="monograph-uploaded"],
-[data-font="monograph-uploaded"] * {
-  font-family: var(--font-monograph) !important;
+[data-font="sora-base-score"],
+[data-font="monograph-uploaded"] *,
+[data-font="sora-base-score"] * {
+  font-family: var(--font-sora) !important;
 }

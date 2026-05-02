@@ -34,8 +34,8 @@ export function MiniappHeader({
         <H1
           variant="eyebrow"
           truncate
-          className="font-monograph-uploaded flex-1 tracking-[0.12em]"
-          data-font="monograph-uploaded"
+          className="font-sora-base-score flex-1 tracking-[0.12em]"
+          data-font="sora-base-score"
         >
           {title}
         </H1>

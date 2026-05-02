@@ -9,7 +9,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <ThemeClient />
       </head>
-      <body className="font-monograph-uploaded antialiased" data-font="monograph-uploaded">
+      <body className="font-sora-base-score antialiased" data-font="sora-base-score">
         <ProvidersAndInitialization>{children}</ProvidersAndInitialization>
       </body>
     </html>
