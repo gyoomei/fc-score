@@ -167,8 +167,8 @@ export function MiniApp() {
         ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}&pfp=${encodeURIComponent(avatar)}&v=${encodeURIComponent(shareVersion)}`
         : "";
 
-    const embeds: [] | [string] | [string, string] = shareCardUrl
-      ? ([appUrl, shareCardUrl] as [string, string])
+    const embeds: [] | [string] = shareCardUrl
+      ? ([shareCardUrl] as [string])
       : appUrl
         ? ([appUrl] as [string])
         : [];
