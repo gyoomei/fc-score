@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-const monographFontPromise = fetch(new URL("./monograph-Regular.ttf", import.meta.url)).then((res) => res.arrayBuffer());
+const monographFontPromise = fetch(new URL("./monograph-Regular.ttf?v=upload-20260502", import.meta.url)).then((res) => res.arrayBuffer());
 
 function clampScore(input: number): number {
   if (Number.isNaN(input)) return 0;
