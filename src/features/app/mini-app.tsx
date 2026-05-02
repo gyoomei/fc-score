@@ -194,7 +194,7 @@ export function MiniApp() {
 
     const score = result.breakdown.totalScore;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt with Base Score v2: activity, consistency, diversity, trust, and anti-farm penalties.\nCan you beat my score? 👇`;
+    const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt from live Base activity, consistency, diversity, and trust signals.\nCan you beat my score? 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareVersion = Date.now().toString();
@@ -311,25 +311,6 @@ export function MiniApp() {
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-emerald-300/20 bg-[linear-gradient(160deg,rgba(16,185,129,0.10),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_36px_rgba(5,150,105,0.16)] ring-1 ring-inset ring-white/10">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">Score Intelligence</p>
-            <span className="rounded-full border border-emerald-300/25 bg-emerald-400/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-100">
-              v2 · {result.source ?? "blockscout"}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {(result.insights ?? ["Score uses Base activity, consistency, contract diversity, trust, and anti-farm penalties."]).map((insight, index) => (
-              <div key={`${insight}-${index}`} className="flex gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-gray-300">
-                <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.8)]" />
-                <span>{insight}</span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-[11px] font-semibold leading-relaxed text-gray-500">
-            Sample: {(result.sampleSize ?? 0).toLocaleString()} indexed tx · 90d active days: {result.activeDays90 ?? 0} · penalties prevent spammy bursts from ranking too high.
-          </p>
-        </div>
 
         <div className="rounded-2xl border border-violet-300/24 bg-[linear-gradient(160deg,rgba(124,58,237,0.10),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_36px_rgba(76,29,149,0.24)] ring-1 ring-inset ring-white/10">
           <div className="mb-3 flex items-center justify-between">
