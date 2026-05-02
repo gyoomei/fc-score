@@ -3,94 +3,64 @@
 import { useEffect, useState } from "react";
 
 const STEPS = [
-  "Reading Base transactions...",
-  "Calculating wallet age...",
-  "Measuring activity consistency...",
-  "Computing total volume...",
-  "Finalizing Base score...",
+  "Syncing Farcaster wallet context",
+  "Reading Base onchain transactions",
+  "Scoring activity and consistency",
+  "Finalizing your Base Score",
 ];
 
 export function ScoreLoading() {
   const [step, setStep] = useState(0);
-  const [dots, setDots] = useState("");
 
   useEffect(() => {
     const stepInterval = setInterval(() => {
-      setStep((s) => Math.min(s + 1, STEPS.length - 1));
-    }, 800);
-    const dotsInterval = setInterval(() => {
-      setDots((d) => (d.length >= 3 ? "" : d + "."));
-    }, 400);
-    return () => {
-      clearInterval(stepInterval);
-      clearInterval(dotsInterval);
-    };
+      setStep((s) => (s + 1) % STEPS.length);
+    }, 1100);
+
+    return () => clearInterval(stepInterval);
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-8 px-6 py-16">
-      {/* Animated ring placeholder */}
-      <div className="relative" style={{ width: 160, height: 160 }}>
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(201,162,39,0.15) 0%, transparent 70%)",
-          }}
-        />
-        <svg
-          width={160}
-          height={160}
-          className="absolute animate-spin"
-          style={{ animationDuration: "2s" }}
-        >
-          <circle
-            cx={80}
-            cy={80}
-            r={65}
-            fill="none"
-            stroke="rgba(255,255,255,0.05)"
-            strokeWidth={8}
-          />
-          <circle
-            cx={80}
-            cy={80}
-            r={65}
-            fill="none"
-            stroke="#c9a227"
-            strokeWidth={8}
-            strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 65 * 0.25} ${2 * Math.PI * 65 * 0.75}`}
-            style={{
-              filter: "drop-shadow(0 0 8px #c9a227) drop-shadow(0 0 16px rgba(201,162,39,0.5))",
-            }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl">🏆</span>
+    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-gray-500">Analyzing</p>
+          <h3 className="text-base font-semibold text-white">Base Wallet Score</h3>
         </div>
+        <div className="h-10 w-10 animate-pulse rounded-xl bg-gradient-to-br from-violet-400/40 to-amber-400/40" />
       </div>
 
-      <div className="text-center space-y-2">
-        <p className="text-white font-semibold text-base">
-          {STEPS[step]}
-          {dots}
-        </p>
-        <p className="text-gray-600 text-sm">Analyzing your Farcaster data</p>
+      <div className="space-y-3">
+        {STEPS.map((item, idx) => {
+          const active = idx === step;
+          const done = idx < step;
+
+          return (
+            <div
+              key={item}
+              className={`rounded-xl border p-3 transition-all duration-500 ${
+                active
+                  ? "border-violet-400/40 bg-violet-500/10 shadow-[0_0_20px_rgba(124,58,237,0.18)]"
+                  : done
+                    ? "border-emerald-400/30 bg-emerald-500/10"
+                    : "border-white/10 bg-white/[0.02]"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className={`text-sm ${active ? "text-white" : done ? "text-emerald-200" : "text-gray-400"}`}>
+                  {item}
+                </p>
+                <span className="text-xs text-gray-400">{done ? "✓" : active ? "…" : ""}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Progress bar */}
-      <div
-        className="w-48 h-1.5 rounded-full overflow-hidden"
-        style={{ background: "rgba(255,255,255,0.07)" }}
-      >
+      <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{
-            width: `${((step + 1) / STEPS.length) * 100}%`,
-            background: "linear-gradient(90deg, #c9a22766, #c9a227)",
-            boxShadow: "0 0 8px rgba(201,162,39,0.5)",
-          }}
+          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-amber-400 transition-all duration-700"
+          style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
         />
       </div>
     </div>

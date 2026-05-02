@@ -3,7 +3,6 @@ export interface BaseWalletScoreBreakdown {
   txCountScore: number;
   activityScore: number;
   volumeScore: number;
-  marketScore: number;
   totalScore: number;
 }
 
@@ -14,7 +13,6 @@ export interface BaseWalletScoreResult {
   walletAgeDays: number;
   activeDays30: number;
   totalVolumeEth: number;
-  dexVolume24hUsd: number;
   breakdown: BaseWalletScoreBreakdown;
   tier: "Dormant" | "Active" | "Power" | "Whale";
 }
@@ -73,20 +71,15 @@ async function fetchBlockscoutTxs(address: string, maxPages = 3): Promise<Blocks
   return items;
 }
 
-async function fetchDexVolume24hUsd(): Promise<number> {
-  const res = await fetch("https://api.llama.fi/overview/dexs/base", { cache: "no-store" });
-  if (!res.ok) return 0;
-  const json = (await res.json()) as { total24h?: number };
-  return Number(json.total24h ?? 0);
-}
-
 export async function calculateBaseWalletScore(address: string): Promise<BaseWalletScoreResult> {
   const normalizedAddress = address.toLowerCase();
   const txs = await fetchBlockscoutTxs(normalizedAddress, 4);
-  const dexVolume24hUsd = await fetchDexVolume24hUsd();
 
   const txCount = txs.length;
-  const txTimes = txs.map((tx) => parseIsoToMs(tx.timestamp)).filter((n) => n > 0).sort((a, b) => a - b);
+  const txTimes = txs
+    .map((tx) => parseIsoToMs(tx.timestamp))
+    .filter((n) => n > 0)
+    .sort((a, b) => a - b);
 
   const firstTs = txTimes.length > 0 ? txTimes[0] : Date.now();
   const now = Date.now();
@@ -111,11 +104,10 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
 
   const walletAgeScore = clamp(Math.round((walletAgeDays / 365) * 250), 0, 250);
   const txCountScore = clamp(Math.round((Math.log10(txCount + 1) / Math.log10(10000)) * 300), 0, 300);
-  const activityScore = clamp(Math.round((Math.min(activeDays30, 30) / 30) * 250), 0, 250);
+  const activityScore = clamp(Math.round((Math.min(activeDays30, 30) / 30) * 300), 0, 300);
   const volumeScore = clamp(Math.round((Math.log10(totalVolumeEth + 1) / Math.log10(1000)) * 150), 0, 150);
-  const marketScore = clamp(Math.round((Math.log10(dexVolume24hUsd + 1) / Math.log10(5_000_000_000)) * 50), 0, 50);
 
-  const totalScore = clamp(walletAgeScore + txCountScore + activityScore + volumeScore + marketScore, 0, 1000);
+  const totalScore = clamp(walletAgeScore + txCountScore + activityScore + volumeScore, 0, 1000);
 
   return {
     address: normalizedAddress,
@@ -124,13 +116,11 @@ export async function calculateBaseWalletScore(address: string): Promise<BaseWal
     walletAgeDays,
     activeDays30,
     totalVolumeEth: Number(totalVolumeEth.toFixed(4)),
-    dexVolume24hUsd,
     breakdown: {
       walletAgeScore,
       txCountScore,
       activityScore,
       volumeScore,
-      marketScore,
       totalScore,
     },
     tier: tierFromScore(totalScore),
