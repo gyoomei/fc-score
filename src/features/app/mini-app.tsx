@@ -163,7 +163,7 @@ export function MiniApp() {
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareCardUrl =
       appUrl && result
-        ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&tier=${encodeURIComponent(result.tier)}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}&pfp=${encodeURIComponent(avatar)}`
+        ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}&pfp=${encodeURIComponent(avatar)}`
         : "";
 
     const embeds: [] | [string] | [string, string] = shareCardUrl

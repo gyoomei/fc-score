@@ -7,10 +7,25 @@ function clampScore(input: number): number {
   return Math.max(0, Math.min(1000, Math.round(input)));
 }
 
-function safeTier(input: string): string {
-  const tier = input.trim();
-  if (["Dormant", "Active", "Power", "Whale"].includes(tier)) return tier;
-  return "Active";
+function tierFromScore(score: number): "Dormant" | "Active" | "Power" | "Whale" {
+  if (score >= 750) return "Whale";
+  if (score >= 500) return "Power";
+  if (score >= 250) return "Active";
+  return "Dormant";
+}
+
+function nextTierInfo(score: number): { label: string; progressPct: number } {
+  if (score >= 750) return { label: "Max tier reached", progressPct: 100 };
+  if (score >= 500) {
+    const pct = Math.max(0, Math.min(100, ((score - 500) / 250) * 100));
+    return { label: `To Whale: ${750 - score} pts`, progressPct: pct };
+  }
+  if (score >= 250) {
+    const pct = Math.max(0, Math.min(100, ((score - 250) / 250) * 100));
+    return { label: `To Power: ${500 - score} pts`, progressPct: pct };
+  }
+  const pct = Math.max(0, Math.min(100, (score / 250) * 100));
+  return { label: `To Active: ${250 - score} pts`, progressPct: pct };
 }
 
 function safeText(input: string, fallback: string, maxLen = 32): string {
@@ -73,7 +88,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   const score = clampScore(Number(searchParams.get("score") || 0));
-  const tier = safeTier(searchParams.get("tier") || "Active");
+  const tier = tierFromScore(score);
   const handle = safeText(searchParams.get("handle") || "", "@base-user", 32);
   const address = safeText(searchParams.get("address") || "", "0x••••••••", 42);
   const tx = Math.max(0, Number(searchParams.get("tx") || 0));
@@ -81,6 +96,7 @@ export async function GET(req: Request) {
   const volume = Math.max(0, Number(searchParams.get("volume") || 0));
   const pfp = safeImageUrl(searchParams.get("pfp") || "");
   const theme = tierTheme(tier);
+  const tierProgress = nextTierInfo(score);
 
   return new ImageResponse(
     (
@@ -196,31 +212,62 @@ export async function GET(req: Request) {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "18px" }}>
-            {[
-              { label: "Tx Count", value: tx.toLocaleString() },
-              { label: "Active 30D", value: `${activeDays}` },
-              { label: "Volume ETH", value: `${volume}` },
-            ].map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  flex: 1,
-                  borderRadius: "16px",
-                  padding: "18px 20px",
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  background: "rgba(255,255,255,0.05)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                }}
-              >
-                <div style={{ fontSize: "16px", color: "rgba(209,213,219,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                  {item.label}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div
+              style={{
+                borderRadius: "14px",
+                border: "1px solid rgba(255,255,255,0.14)",
+                background: "rgba(255,255,255,0.06)",
+                padding: "14px 16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontSize: "14px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(209,213,219,0.9)" }}>
+                  Tier Progress
                 </div>
-                <div style={{ fontSize: "36px", fontWeight: 800 }}>{item.value}</div>
+                <div style={{ fontSize: "14px", color: "#D1FAE5", fontWeight: 700 }}>{tierProgress.label}</div>
               </div>
-            ))}
+              <div style={{ height: "10px", borderRadius: "999px", background: "rgba(255,255,255,0.14)", overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${tierProgress.progressPct}%`,
+                    height: "100%",
+                    borderRadius: "999px",
+                    background: "linear-gradient(90deg, #34D399 0%, #A78BFA 55%, #FBBF24 100%)",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "18px" }}>
+              {[
+                { label: "Tx Count", value: tx.toLocaleString() },
+                { label: "Active 30D", value: `${activeDays}` },
+                { label: "Volume ETH", value: `${volume}` },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  style={{
+                    flex: 1,
+                    borderRadius: "16px",
+                    padding: "18px 20px",
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    background: "rgba(255,255,255,0.05)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <div style={{ fontSize: "16px", color: "rgba(209,213,219,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    {item.label}
+                  </div>
+                  <div style={{ fontSize: "36px", fontWeight: 800 }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
