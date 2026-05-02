@@ -6,6 +6,7 @@ import { base } from "viem/chains";
 import { createPublicClient, createWalletClient, custom, encodeDeployData, http, type Hex } from "viem";
 import { ScoreLoading } from "@/features/app/components/score-loading";
 import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
+import { publicConfig } from "@/config/public-config";
 import { ERC20_TOKEN_ABI, ERC20_TOKEN_BYTECODE } from "@/features/app/erc20-token-artifact";
 
 type TierName = "Dormant" | "Active" | "Power" | "Whale";
@@ -235,33 +236,32 @@ export function MiniApp() {
     setSharing(true);
 
     const score = result.breakdown.totalScore;
-    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const origin = typeof window !== "undefined" ? window.location.origin : publicConfig.homeUrl;
+    const appUrl = origin.includes("localhost") || origin.includes("127.0.0.1") ? publicConfig.homeUrl : origin;
     const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt from live Base activity, consistency, diversity, and trust signals.\nCan you beat my score? 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareVersion = Date.now().toString();
-    const shareParams = new URLSearchParams({
-      personalize: "true",
-      score: String(score),
-      tier: result.tier,
-      username: handle.replace(/^@/, ""),
-      address: shortenAddress(result.address),
-      tx: String(result.txCount),
-      active: String(result.activeDays30),
-      volume: String(result.totalVolumeEth),
-      v: shareVersion,
-    });
-    if (avatar) shareParams.set("pfp", avatar);
-    const sharePageUrl = appUrl ? `${appUrl}/?${shareParams.toString()}` : "";
-
-    const embeds: [] | [string] = sharePageUrl ? ([sharePageUrl] as [string]) : [];
-
-    try {
-      await sdk.actions.composeCast({
-        text,
-        embeds,
+    const buildShareUrl = (includeAvatar: boolean) => {
+      const params = new URLSearchParams({
+        personalize: "true",
+        score: String(score),
+        tier: result.tier,
+        username: handle.replace(/^@/, ""),
+        address: shortenAddress(result.address),
+        tx: String(result.txCount),
+        active: String(result.activeDays30),
+        volume: String(result.totalVolumeEth),
+        v: shareVersion,
       });
-    } catch {
+      if (includeAvatar && avatar) params.set("pfp", avatar);
+      return `${appUrl}/?${params.toString()}`;
+    };
+    const sharePageUrlWithAvatar = buildShareUrl(true);
+    const sharePageUrl = sharePageUrlWithAvatar.length <= 1024 ? sharePageUrlWithAvatar : buildShareUrl(false);
+    const embeds: [] | [string] = [sharePageUrl];
+
+    const fallbackToWarpcast = async () => {
       try {
         if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(text.trim());
@@ -270,12 +270,33 @@ export function MiniApp() {
         // Clipboard fallback is best-effort only.
       }
 
-      if (typeof window !== "undefined") {
-        const fallbackText = encodeURIComponent(text.trim());
-        const fallbackEmbed = sharePageUrl ? `&embeds[]=${encodeURIComponent(sharePageUrl)}` : "";
-        window.open(`https://warpcast.com/~/compose?text=${fallbackText}${fallbackEmbed}`, "_blank", "noopener,noreferrer");
+      const composeUrl = new URL("https://warpcast.com/~/compose");
+      composeUrl.searchParams.set("text", text.trim());
+      composeUrl.searchParams.append("embeds[]", sharePageUrl);
+
+      try {
+        await sdk.actions.openUrl(composeUrl.toString());
+      } catch {
+        if (typeof window !== "undefined") {
+          window.open(composeUrl.toString(), "_blank", "noopener,noreferrer");
+        }
+      }
+    };
+
+    try {
+      const isMiniApp = await sdk.isInMiniApp().catch(() => false);
+      if (!isMiniApp) {
+        await fallbackToWarpcast();
+        setShareError("Warpcast composer opened in a new tab.");
+        return;
       }
 
+      await sdk.actions.composeCast({
+        text,
+        embeds,
+      });
+    } catch {
+      await fallbackToWarpcast();
       setShareError("Native composer failed, so Warpcast fallback was opened.");
     } finally {
       setSharing(false);
