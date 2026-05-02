@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { SketchButton } from "./sketch-button";
-import { SketchCard } from "./sketch-card";
-import { SketchHeading } from "./sketch-heading";
-import { SketchInput } from "./sketch-input";
-import { SketchTextarea } from "./sketch-textarea";
-import { SketchFilters } from "./sketch-filters";
+import { SketchButton } from "@/components/sketch/sketch-button";
+import { SketchCard } from "@/components/sketch/sketch-card";
+import { SketchHeading } from "@/components/sketch/sketch-heading";
+import { SketchInput } from "@/components/sketch/sketch-input";
+import { SketchTextarea } from "@/components/sketch/sketch-textarea";
+import { SketchFilters } from "@/components/sketch/sketch-filters";
 
 export function SketchDemo() {
   const [count, setCount] = useState(0);

@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { ScoreRing } from "./score-ring";
-import { TierBadge } from "./tier-badge";
-import { StatCard } from "./stat-card";
+import { ScoreRing } from "@/features/app/components/score-ring";
+import { TierBadge } from "@/features/app/components/tier-badge";
+import { StatCard } from "@/features/app/components/stat-card";
 import { ShareButton } from "@/neynar-farcaster-sdk/mini";
-import type { FarcasterScoreResult } from "../types";
+import type { FarcasterScoreResult } from "@/features/app/types";
 
 interface ScoreResultProps {
   result: FarcasterScoreResult;

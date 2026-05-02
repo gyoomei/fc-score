@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Tier } from "../types";
+import type { Tier } from "@/features/app/types";
 
 interface ScoreRingProps {
   score: number;

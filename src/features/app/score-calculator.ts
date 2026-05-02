@@ -1,4 +1,4 @@
-import type { Tier, ScoreBreakdown, FarcasterScoreResult } from "./types";
+import type { Tier, ScoreBreakdown, FarcasterScoreResult } from "@/features/app/types";
 
 export const TIERS: Tier[] = [
   {

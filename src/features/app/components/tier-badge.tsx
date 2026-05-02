@@ -1,6 +1,6 @@
 "use client";
 
-import type { Tier } from "../types";
+import type { Tier } from "@/features/app/types";
 
 interface TierBadgeProps {
   tier: Tier;

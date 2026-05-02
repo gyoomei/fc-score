@@ -1,8 +1,8 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import { SketchHeading } from "./sketch-heading";
-import { SketchFilters } from "./sketch-filters";
+import { SketchHeading } from "@/components/sketch/sketch-heading";
+import { SketchFilters } from "@/components/sketch/sketch-filters";
 
 type SketchTab = {
   label: string;
