@@ -1,6 +1,6 @@
 {
-  "iconUrl": "/app-logo.png",
-  "splashImageUrl": "/app-splash.png",
-  "heroImageUrl": "/app-hero.png?v=20260502b",
-  "imageUrl": "/app-farcaster-image.png?v=20260502b"
+  "iconUrl": "/app-logo-v3.png?v=logo20260502",
+  "splashImageUrl": "/app-splash-v3.png?v=logo20260502",
+  "heroImageUrl": "/app-hero-v3.png?v=logo20260502",
+  "imageUrl": "/app-farcaster-image-v3.png?v=logo20260502"
 }

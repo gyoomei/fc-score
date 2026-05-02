@@ -375,10 +375,17 @@ function PageShell({ children }: { children: React.ReactNode }) {
 function Header({ subtitle }: { subtitle: string }) {
   return (
     <div className="mb-6 text-center animate-in fade-in-0 zoom-in-95 duration-500">
-      <p className="mb-2 inline-flex rounded-full border border-violet-300/25 bg-violet-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-violet-100">
+      <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-amber-300/35 bg-black/55 p-1.5 shadow-[0_0_55px_rgba(245,158,11,0.28)] ring-1 ring-white/10">
+        <img
+          src="/app-logo-v3.png?v=logo20260502"
+          alt="Base Score gold logo"
+          className="h-full w-full rounded-full object-cover drop-shadow-[0_0_22px_rgba(251,191,36,0.42)]"
+        />
+      </div>
+      <p className="mb-2 inline-flex rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-amber-100">
         Onchain Reputation
       </p>
-      <h1 className="bg-gradient-to-r from-white via-violet-200 to-amber-200 bg-clip-text text-3xl font-black tracking-tight text-transparent">
+      <h1 className="bg-gradient-to-r from-white via-amber-100 to-yellow-300 bg-clip-text text-3xl font-black tracking-tight text-transparent">
         Base Wallet Score
       </h1>
       <p className="mt-1 text-sm font-semibold text-gray-400">{subtitle}</p>

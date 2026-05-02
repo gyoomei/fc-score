@@ -25,11 +25,11 @@ export function MiniappHeader({
         )}
       >
         <Image
-          src="/app-splash.png"
-          alt="App logo"
+          src="/app-logo-v3.png?v=logo20260502"
+          alt="Base Score logo"
           width={32}
           height={32}
-          className="rounded-lg flex-shrink-0"
+          className="rounded-full flex-shrink-0 border border-amber-300/30 shadow-[0_0_18px_rgba(245,158,11,0.28)]"
         />
         <H1 variant="eyebrow" truncate className="flex-1">
           {title}
