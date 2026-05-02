@@ -5,6 +5,8 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { ScoreLoading } from "./components/score-loading";
 import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
 
+type TierName = "Dormant" | "Active" | "Power" | "Whale";
+
 type ApiResult = {
   address: string;
   chain: "base";
@@ -19,8 +21,15 @@ type ApiResult = {
     volumeScore: number;
     totalScore: number;
   };
-  tier: "Dormant" | "Active" | "Power" | "Whale";
+  tier: TierName;
 };
+
+const TIER_STEPS: { name: TierName; range: string; hint: string }[] = [
+  { name: "Dormant", range: "0–249", hint: "Low activity" },
+  { name: "Active", range: "250–499", hint: "Consistent usage" },
+  { name: "Power", range: "500–749", hint: "High engagement" },
+  { name: "Whale", range: "750–1000", hint: "Top onchain signal" },
+];
 
 function shortenAddress(value: string): string {
   if (!/^0x[a-fA-F0-9]{40}$/.test(value)) return value;
@@ -209,6 +218,7 @@ export function MiniApp() {
   if (!isValidAddress || !result) return null;
 
   const shortAddress = `${resolvedAddress.slice(0, 6)}...${resolvedAddress.slice(-4)}`;
+  const currentTierIndex = TIER_STEPS.findIndex((item) => item.name === result.tier);
 
   return (
     <PageShell>
@@ -245,6 +255,53 @@ export function MiniApp() {
           <BreakRow label="Tx Count" value={result.breakdown.txCountScore} max={300} />
           <BreakRow label="Activity" value={result.breakdown.activityScore} max={300} />
           <BreakRow label="Volume" value={result.breakdown.volumeScore} max={150} />
+        </div>
+
+        <div className="rounded-2xl border border-violet-300/20 bg-white/[0.02] p-4 backdrop-blur-sm shadow-[0_10px_30px_rgba(76,29,149,0.18)]">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-violet-200">Tier Ladder</p>
+            <span className="rounded-full border border-violet-300/30 bg-violet-400/10 px-2 py-0.5 text-[11px] font-semibold text-violet-100">
+              Current: {result.tier}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {TIER_STEPS.map((tier, index) => {
+              const isCurrent = tier.name === result.tier;
+              const isUnlocked = currentTierIndex >= index;
+
+              return (
+                <div
+                  key={tier.name}
+                  className={`relative overflow-hidden rounded-xl border px-3 py-2 transition-all duration-300 ${
+                    isCurrent
+                      ? "border-amber-300/55 bg-gradient-to-r from-amber-300/14 via-violet-400/16 to-violet-300/12 shadow-[0_10px_24px_rgba(245,158,11,0.18)]"
+                      : isUnlocked
+                        ? "border-violet-300/25 bg-violet-400/8"
+                        : "border-white/10 bg-white/[0.02]"
+                  }`}
+                >
+                  {isCurrent ? (
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.18),transparent_45%)]" />
+                  ) : null}
+                  <div className="relative flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-extrabold text-white">{tier.name}</p>
+                      <p className="text-[11px] font-semibold text-gray-400">{tier.hint}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[11px] font-bold text-gray-200">
+                        {tier.range}
+                      </span>
+                      <span className={`text-xs font-black ${isUnlocked ? "text-emerald-300" : "text-gray-500"}`}>
+                        {isCurrent ? "YOU" : isUnlocked ? "✓" : "•"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="space-y-2">
