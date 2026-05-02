@@ -2,6 +2,8 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
+const monographFontPromise = fetch(new URL("./monograph-Regular.ttf", import.meta.url)).then((res) => res.arrayBuffer());
+
 function clampScore(input: number): number {
   if (Number.isNaN(input)) return 0;
   return Math.max(0, Math.min(1000, Math.round(input)));
@@ -86,6 +88,7 @@ function tierTheme(tier: string): {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const monographFont = await monographFontPromise;
 
   const score = clampScore(Number(searchParams.get("score") || 0));
   const tier = tierFromScore(score);
@@ -109,7 +112,7 @@ export async function GET(req: Request) {
           background: theme.cardBackground,
           color: "white",
           padding: "56px",
-          fontFamily: "Inter, Arial, sans-serif",
+          fontFamily: "Monograph, Inter, Arial, sans-serif",
         }}
       >
         <div
@@ -275,6 +278,14 @@ export async function GET(req: Request) {
     {
       width: 1200,
       height: 800,
+      fonts: [
+        {
+          name: "Monograph",
+          data: monographFont,
+          style: "normal",
+          weight: 400,
+        },
+      ],
       headers: {
         "Cache-Control": "public, max-age=60, s-maxage=300",
       },

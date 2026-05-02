@@ -158,7 +158,7 @@ export function MiniApp() {
 
     const score = result.breakdown.totalScore;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const text = `I got ${score} (${result.tier}) on Base Wallet Score ⚡\n${appUrl}\nCheck yours 👇`;
+    const text = `Skor wallet-ku ${score} (${result.tier}) di Base ⚡\nOnchain makin tajam, reputasi makin naik.\nSiap kalahin skorku? 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareVersion = Date.now().toString();
@@ -181,13 +181,14 @@ export function MiniApp() {
     } catch {
       try {
         if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(`${text}\n${appUrl}`.trim());
+          await navigator.clipboard.writeText(text.trim());
         }
       } catch {}
 
       if (typeof window !== "undefined") {
-        const fallbackText = encodeURIComponent(`${text}\n${appUrl}`.trim());
-        window.open(`https://warpcast.com/~/compose?text=${fallbackText}`, "_blank", "noopener,noreferrer");
+        const fallbackText = encodeURIComponent(text.trim());
+        const fallbackEmbed = shareCardUrl ? `&embeds[]=${encodeURIComponent(shareCardUrl)}` : "";
+        window.open(`https://warpcast.com/~/compose?text=${fallbackText}${fallbackEmbed}`, "_blank", "noopener,noreferrer");
       }
 
       setShareError("Compose native gagal, fallback Warpcast dibuka.");
