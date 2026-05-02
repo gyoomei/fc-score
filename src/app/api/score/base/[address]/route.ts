@@ -19,15 +19,7 @@ export async function GET(
       );
     }
 
-    const apiKey = process.env.BASESCAN_API_KEY || "";
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "BASESCAN_API_KEY is missing on server" },
-        { status: 503 },
-      );
-    }
-
-    const result = await calculateBaseWalletScore(address, apiKey);
+    const result = await calculateBaseWalletScore(address);
 
     return NextResponse.json(result, {
       status: 200,
