@@ -157,8 +157,8 @@ export function MiniApp() {
     setSharing(true);
 
     const score = result.breakdown.totalScore;
-    const text = `I got ${score} (${result.tier}) on Base Wallet Score ⚡\nCheck yours 👇`;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const text = `I got ${score} (${result.tier}) on Base Wallet Score ⚡\n${appUrl}\nCheck yours 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareCardUrl =
