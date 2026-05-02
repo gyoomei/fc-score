@@ -26,12 +26,23 @@ type ApiResult = {
   txCount: number;
   walletAgeDays: number;
   activeDays30: number;
+  activeDays90?: number;
+  uniqueContracts?: number;
   totalVolumeEth: number;
+  confidence?: number;
+  sampleSize?: number;
+  source?: string;
+  scoringVersion?: string;
+  insights?: string[];
   breakdown: {
     walletAgeScore: number;
     txCountScore: number;
     activityScore: number;
+    consistencyScore?: number;
     volumeScore: number;
+    diversityScore?: number;
+    trustScore?: number;
+    penaltyScore?: number;
     totalScore: number;
   };
   tier: TierName;
@@ -183,7 +194,7 @@ export function MiniApp() {
 
     const score = result.breakdown.totalScore;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt from real onchain activity, consistency, and volume.\nCan you beat my score? 👇`;
+    const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt with Base Score v2: activity, consistency, diversity, trust, and anti-farm penalties.\nCan you beat my score? 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareVersion = Date.now().toString();
@@ -277,8 +288,10 @@ export function MiniApp() {
         <div className="grid grid-cols-2 gap-2.5">
           <Metric delay={0} label="Tx Count" value={result.txCount.toLocaleString()} />
           <Metric delay={70} label="Wallet Age" value={`${result.walletAgeDays} days`} />
-          <Metric delay={140} label="Active 30d" value={`${result.activeDays30} tx`} />
-          <Metric delay={210} label="Volume" value={`${result.totalVolumeEth} ETH`} />
+          <Metric delay={140} label="Active Days" value={`${result.activeDays30} / 30d`} />
+          <Metric delay={210} label="Contracts" value={(result.uniqueContracts ?? 0).toLocaleString()} />
+          <Metric delay={280} label="Volume" value={`${result.totalVolumeEth} ETH`} />
+          <Metric delay={350} label="Confidence" value={`${result.confidence ?? 0}%`} />
         </div>
 
         <div className="rounded-2xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_44px_rgba(0,0,0,0.30)] ring-1 ring-inset ring-white/10">
@@ -286,10 +299,36 @@ export function MiniApp() {
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gray-400">Breakdown</p>
             <span className="text-[11px] font-semibold text-violet-200/80">Auto weighted</span>
           </div>
-          <BreakRow label="Wallet Age" value={result.breakdown.walletAgeScore} max={250} />
-          <BreakRow label="Tx Count" value={result.breakdown.txCountScore} max={300} />
-          <BreakRow label="Activity" value={result.breakdown.activityScore} max={300} />
-          <BreakRow label="Volume" value={result.breakdown.volumeScore} max={150} />
+          <BreakRow label="Wallet Age" value={result.breakdown.walletAgeScore} max={160} />
+          <BreakRow label="Tx Count" value={result.breakdown.txCountScore} max={220} />
+          <BreakRow label="Activity" value={result.breakdown.activityScore} max={170} />
+          <BreakRow label="Consistency" value={result.breakdown.consistencyScore ?? 0} max={140} />
+          <BreakRow label="Volume" value={result.breakdown.volumeScore} max={110} />
+          <BreakRow label="Diversity" value={result.breakdown.diversityScore ?? 0} max={140} />
+          <BreakRow label="Trust" value={result.breakdown.trustScore ?? 0} max={90} />
+          {(result.breakdown.penaltyScore ?? 0) > 0 ? (
+            <BreakRow label="Penalty" value={-(result.breakdown.penaltyScore ?? 0)} max={140} tone="danger" />
+          ) : null}
+        </div>
+
+        <div className="rounded-2xl border border-emerald-300/20 bg-[linear-gradient(160deg,rgba(16,185,129,0.10),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_36px_rgba(5,150,105,0.16)] ring-1 ring-inset ring-white/10">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">Score Intelligence</p>
+            <span className="rounded-full border border-emerald-300/25 bg-emerald-400/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-100">
+              v2 · {result.source ?? "blockscout"}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {(result.insights ?? ["Score uses Base activity, consistency, contract diversity, trust, and anti-farm penalties."]).map((insight, index) => (
+              <div key={`${insight}-${index}`} className="flex gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-gray-300">
+                <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.8)]" />
+                <span>{insight}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] font-semibold leading-relaxed text-gray-500">
+            Sample: {(result.sampleSize ?? 0).toLocaleString()} indexed tx · 90d active days: {result.activeDays90 ?? 0} · penalties prevent spammy bursts from ranking too high.
+          </p>
         </div>
 
         <div className="rounded-2xl border border-violet-300/24 bg-[linear-gradient(160deg,rgba(124,58,237,0.10),rgba(255,255,255,0.02))] p-4 backdrop-blur-md shadow-[0_14px_36px_rgba(76,29,149,0.24)] ring-1 ring-inset ring-white/10">
@@ -654,19 +693,23 @@ function Metric({ label, value, delay = 0 }: { label: string; value: string; del
   );
 }
 
-function BreakRow({ label, value, max }: { label: string; value: number; max: number }) {
-  const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+function BreakRow({ label, value, max, tone = "default" }: { label: string; value: number; max: number; tone?: "default" | "danger" }) {
+  const absValue = Math.abs(value);
+  const pct = Math.max(0, Math.min(100, Math.round((absValue / max) * 100)));
+  const barClass = tone === "danger"
+    ? "h-full rounded-full bg-gradient-to-r from-rose-500 via-orange-400 to-amber-300 transition-all duration-1000"
+    : "h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-amber-400 transition-all duration-1000";
   return (
     <div className="mb-3">
       <div className="mb-1 flex justify-between text-xs text-gray-400">
         <span className="font-bold tracking-wide">{label}</span>
-        <span className="font-semibold">
-          <AnimatedNumber value={value} duration={900} />/{max}
+        <span className={`font-semibold ${tone === "danger" ? "text-rose-300" : ""}`}>
+          {value < 0 ? "-" : ""}<AnimatedNumber value={absValue} duration={900} />/{max}
         </span>
       </div>
       <div className="relative h-2.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-amber-400 transition-all duration-1000"
+          className={barClass}
           style={{ width: `${pct}%` }}
         />
         <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white/40 to-transparent blur-[2px]" style={{ transform: `translateX(calc(${pct}% - 2.5rem))` }} />
