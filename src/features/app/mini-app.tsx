@@ -59,7 +59,7 @@ export function MiniApp() {
     try {
       const res = await fetch(`/api/score/base/${addr}`, { cache: "no-store" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Gagal menghitung score");
+      if (!res.ok) throw new Error(json?.error || "Failed to calculate score");
       setResult(json as ApiResult);
     } catch (e) {
       setResult(null);
@@ -145,7 +145,7 @@ export function MiniApp() {
       const candidate = await getCandidateAddress();
 
       if (!candidate) {
-        setError("Wallet Base tidak ditemukan dari context/verifikasi Farcaster");
+        setError("Base wallet was not found from your Farcaster context or verified addresses.");
         return;
       }
 
@@ -163,20 +163,25 @@ export function MiniApp() {
 
     const score = result.breakdown.totalScore;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const text = `Skor wallet-ku ${score} (${result.tier}) di Base ⚡\nOnchain makin tajam, reputasi makin naik.\nSiap kalahin skorku? 👇`;
+    const text = `My Base wallet score is ${score} (${result.tier}) ⚡\nBuilt from real onchain activity, consistency, and volume.\nCan you beat my score? 👇`;
     const handle = (fcUser as { username?: string } | null)?.username || "base-user";
     const avatar = (fcUser as { pfpUrl?: string } | null)?.pfpUrl || "";
     const shareVersion = Date.now().toString();
-    const shareCardUrl =
-      appUrl && result
-        ? `${appUrl}/api/share-card?score=${encodeURIComponent(String(score))}&handle=${encodeURIComponent(handle)}&address=${encodeURIComponent(shortenAddress(result.address))}&tx=${encodeURIComponent(String(result.txCount))}&active=${encodeURIComponent(String(result.activeDays30))}&volume=${encodeURIComponent(String(result.totalVolumeEth))}&pfp=${encodeURIComponent(avatar)}&v=${encodeURIComponent(shareVersion)}`
-        : "";
+    const shareParams = new URLSearchParams({
+      personalize: "true",
+      score: String(score),
+      tier: result.tier,
+      username: handle.replace(/^@/, ""),
+      address: shortenAddress(result.address),
+      tx: String(result.txCount),
+      active: String(result.activeDays30),
+      volume: String(result.totalVolumeEth),
+      v: shareVersion,
+    });
+    if (avatar) shareParams.set("pfp", avatar);
+    const sharePageUrl = appUrl ? `${appUrl}/?${shareParams.toString()}` : "";
 
-    const embeds: [] | [string] = shareCardUrl
-      ? ([shareCardUrl] as [string])
-      : appUrl
-        ? ([appUrl] as [string])
-        : [];
+    const embeds: [] | [string] = sharePageUrl ? ([sharePageUrl] as [string]) : [];
 
     try {
       await sdk.actions.composeCast({
@@ -192,11 +197,11 @@ export function MiniApp() {
 
       if (typeof window !== "undefined") {
         const fallbackText = encodeURIComponent(text.trim());
-        const fallbackEmbed = shareCardUrl ? `&embeds[]=${encodeURIComponent(shareCardUrl)}` : "";
+        const fallbackEmbed = sharePageUrl ? `&embeds[]=${encodeURIComponent(sharePageUrl)}` : "";
         window.open(`https://warpcast.com/~/compose?text=${fallbackText}${fallbackEmbed}`, "_blank", "noopener,noreferrer");
       }
 
-      setShareError("Compose native gagal, fallback Warpcast dibuka.");
+      setShareError("Native composer failed, so Warpcast fallback was opened.");
     } finally {
       setSharing(false);
     }

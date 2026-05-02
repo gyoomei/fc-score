@@ -37,8 +37,20 @@ export async function getFarcasterPageMetadata({
   const pagePath = `${homeUrl}${cleanPath}${conditionalQueryString}`;
 
   const shareImageRoot = `${homeUrl}/api/share/image`;
-  const ogImageUrlValue = `${shareImageRoot}/og${conditionalQueryString}`;
-  const farcasterImageUrlValue = `${shareImageRoot}/farcaster${conditionalQueryString}`;
+  const isScoreShare = isPersonalized && params.score;
+  const imageParams = new URLSearchParams(params);
+  const username = imageParams.get("username");
+  if (username) {
+    imageParams.set("handle", username.startsWith("@") ? username : `@${username}`);
+    imageParams.delete("username");
+  }
+  imageParams.delete("personalize");
+  imageParams.delete("tier");
+  const personalizedShareCardUrl = isScoreShare
+    ? `${homeUrl}/api/share-card?${imageParams.toString()}`
+    : "";
+  const ogImageUrlValue = personalizedShareCardUrl || `${shareImageRoot}/og${conditionalQueryString}`;
+  const farcasterImageUrlValue = personalizedShareCardUrl || `${shareImageRoot}/farcaster${conditionalQueryString}`;
 
   const embed: MiniAppEmbedNext = {
     version: "next",
