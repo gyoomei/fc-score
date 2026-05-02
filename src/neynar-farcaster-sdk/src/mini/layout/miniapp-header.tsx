@@ -31,7 +31,12 @@ export function MiniappHeader({
           height={32}
           className="rounded-full flex-shrink-0 border border-amber-300/30 shadow-[0_0_18px_rgba(245,158,11,0.28)]"
         />
-        <H1 variant="eyebrow" truncate className="flex-1">
+        <H1
+          variant="eyebrow"
+          truncate
+          className="font-monograph-uploaded flex-1 tracking-[0.12em]"
+          data-font="monograph-uploaded"
+        >
           {title}
         </H1>
 
