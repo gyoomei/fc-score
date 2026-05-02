@@ -28,6 +28,8 @@ export function MiniApp() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
   const [resolvedAddress, setResolvedAddress] = useState<string>("");
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
   const hasAutoFetchedRef = useRef(false);
 
   const isValidAddress = useMemo(
@@ -134,6 +136,39 @@ export function MiniApp() {
     })();
   }, [fcUser, userLoading]);
 
+  const handleShare = async () => {
+    if (!result) return;
+
+    setShareError(null);
+    setSharing(true);
+
+    const score = result.breakdown.totalScore;
+    const text = `I got ${score} (${result.tier}) on Base Wallet Score ⚡\nCheck yours 👇`;
+    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+    try {
+      await sdk.actions.composeCast({
+        text,
+        embeds: appUrl ? [appUrl] : undefined,
+      });
+    } catch {
+      try {
+        if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(`${text}\n${appUrl}`.trim());
+        }
+      } catch {}
+
+      if (typeof window !== "undefined") {
+        const fallbackText = encodeURIComponent(`${text}\n${appUrl}`.trim());
+        window.open(`https://warpcast.com/~/compose?text=${fallbackText}`, "_blank", "noopener,noreferrer");
+      }
+
+      setShareError("Compose native gagal, fallback Warpcast dibuka.");
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const showLoading = userLoading || loading;
 
   if (showLoading) {
@@ -193,6 +228,20 @@ export function MiniApp() {
           <BreakRow label="Tx Count" value={result.breakdown.txCountScore} max={300} />
           <BreakRow label="Activity" value={result.breakdown.activityScore} max={300} />
           <BreakRow label="Volume" value={result.breakdown.volumeScore} max={150} />
+        </div>
+
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={sharing}
+            className="w-full rounded-2xl border border-violet-300/35 bg-gradient-to-r from-violet-500/85 via-fuchsia-500/80 to-amber-400/80 px-4 py-3 text-sm font-extrabold text-white shadow-[0_12px_35px_rgba(124,58,237,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(124,58,237,0.45)] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {sharing ? "Opening composer..." : "Share Score"}
+          </button>
+          {shareError ? (
+            <p className="text-center text-xs font-semibold text-amber-300">{shareError}</p>
+          ) : null}
         </div>
       </div>
     </PageShell>
