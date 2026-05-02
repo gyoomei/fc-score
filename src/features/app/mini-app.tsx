@@ -283,15 +283,22 @@ export function MiniApp() {
   };
 
   const showLoading = !result && (userLoading || loading);
+  const showDeployTab = !showLoading;
   const shortAddress = isValidAddress ? `${resolvedAddress.slice(0, 6)}...${resolvedAddress.slice(-4)}` : "Auto-detect wallet";
   const currentTierIndex = result ? TIER_STEPS.findIndex((item) => item.name === result.tier) : -1;
+
+  useEffect(() => {
+    if (!showDeployTab && activeTab === "deploy") {
+      setActiveTab("score");
+    }
+  }, [activeTab, showDeployTab]);
 
   return (
     <PageShell>
       <Header subtitle={activeTab === "score" && result ? `Wallet: ${shortAddress}` : "Base reputation • token deploy"} />
-      <TabSwitcher activeTab={activeTab} onChange={setActiveTab} />
+      <TabSwitcher activeTab={activeTab} onChange={setActiveTab} showDeploy={showDeployTab} />
 
-      {activeTab === "deploy" ? (
+      {activeTab === "deploy" && showDeployTab ? (
         <DeployTokenPanel />
       ) : showLoading ? (
         <ScoreLoading />
@@ -455,14 +462,14 @@ export function MiniApp() {
   );
 }
 
-function TabSwitcher({ activeTab, onChange }: { activeTab: AppTab; onChange: (tab: AppTab) => void }) {
+function TabSwitcher({ activeTab, onChange, showDeploy = true }: { activeTab: AppTab; onChange: (tab: AppTab) => void; showDeploy?: boolean }) {
   const tabs: { id: AppTab; label: string; hint: string }[] = [
     { id: "score", label: "Base Score", hint: "Reputation" },
-    { id: "deploy", label: "Deploy Token", hint: "ERC20" },
+    ...(showDeploy ? [{ id: "deploy" as const, label: "Deploy Token", hint: "ERC20" }] : []),
   ];
 
   return (
-    <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/12 bg-white/[0.04] p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md">
+    <div className={`mb-5 grid gap-2 rounded-2xl border border-white/12 bg-white/[0.04] p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md ${showDeploy ? "grid-cols-2" : "grid-cols-1"}`}>
       {tabs.map((tab) => {
         const active = activeTab === tab.id;
         return (
