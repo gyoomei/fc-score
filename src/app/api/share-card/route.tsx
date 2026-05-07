@@ -1,5 +1,3 @@
-import { ImageResponse } from "next/og";
-
 function clampScore(input: number): number {
   if (Number.isNaN(input)) return 0;
   return Math.max(0, Math.min(1000, Math.round(input)));
@@ -83,6 +81,7 @@ function tierTheme(tier: string): {
 }
 
 export async function GET(req: Request) {
+  const { ImageResponse } = await import("next/og");
   const { searchParams } = new URL(req.url);
 
   const score = clampScore(Number(searchParams.get("score") || 0));
