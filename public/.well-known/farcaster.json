@@ -1,7 +1,18 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjI0MTQ3MCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDkyQzgyNTIwOTA3YjZDZmU2MUUzNjNmZTBFOWY2QjdjODJmQzdENTkifQ",
-    "payload": "eyJkb21haW4iOiJmYy1zY29yZS1hYThlLnZlcmNlbC5hcHAifQ",
-    "signature": "8K06sg8SQsjzg1/13aK/gI/1PWX7Gs2dFECOcxZWZQE7kRqpAs0w80lysLiqXHumetq5HbkZvRUXJ3wedPUAehs="
+    "header": "eyJmaWQiOjI0MTQ3MCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDVmOWVjRDkwMzI2OEIyODlkZjBEM2IxZjU0RTI5MzI5NzRGRDQxZEUifQ",
+    "payload": "eyJkb21haW4iOiJmYy1zY29yZS50b215cmF0YW1hMTI4LndvcmtlcnMuZGV2In0",
+    "signature": "0kptfgfSg68Go7yOD+1njZKOdk7LnGbnebdcMvUGVftGh8qmKwSAiwtJRL1x0isobCrmzsiLmA2iNEOU/gaHOhw="
+  },
+  "frame": {
+    "version": "1",
+    "name": "Example Frame",
+    "iconUrl": "https://fc-score.tomyratama128.workers.dev/icon.png",
+    "homeUrl": "https://fc-score.tomyratama128.workers.dev",
+    "imageUrl": "https://fc-score.tomyratama128.workers.dev/image.png",
+    "buttonTitle": "Check this out",
+    "splashImageUrl": "https://fc-score.tomyratama128.workers.dev/splash.png",
+    "splashBackgroundColor": "#eeccff",
+    "webhookUrl": "https://fc-score.tomyratama128.workers.dev/api/webhook"
   }
 }
