@@ -197,7 +197,7 @@ async function makePng(score: number, tier: string, tx: number, activeDays: numb
   drawText(pixels, "BASE SCORE", 135, 132, 8, [196, 181, 253]);
   drawText(pixels, "ONCHAIN WALLET RANK", 135, 205, 4, [148, 163, 184]);
 
-  drawText(pixels, String(score), 135, 270, 24, [248, 250, 252]);
+  drawText(pixels, String(score), 135, 260, 27, [248, 250, 252]);
 
   const statsY = 590;
   const boxes = [

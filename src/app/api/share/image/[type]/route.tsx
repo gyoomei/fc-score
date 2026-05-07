@@ -92,7 +92,7 @@ export async function GET(
         <div
           style={{
             display: "flex",
-            fontSize: 120,
+            fontSize: 136,
             fontWeight: "bold",
             color: "#c9a227",
             letterSpacing: -4,
@@ -111,8 +111,8 @@ export async function GET(
             height: 2,
             backgroundImage:
               "linear-gradient(90deg, transparent 0%, rgba(201,162,39,0.6) 50%, transparent 100%)",
-            marginTop: 20,
-            marginBottom: 20,
+            marginTop: 14,
+            marginBottom: 18,
           }}
         />
 
