@@ -130,10 +130,14 @@ type WarpcastCastsResponse = {
   };
 };
 
-// Use the full scoring sample so protocol, recency, and social signals stay as complete as before.
-// The legacy Blockscout fast path below still reduces round trips without reducing sample size.
+// Keep the scoring sample bounded so the mini app stays fast, but calculate native ETH
+// volume from a much deeper deterministic history window. Using only the newest 400
+// transactions for `totalVolumeEth` made the displayed volume move down when older
+// high-value transactions fell out of the rolling sample.
 const MAX_TRANSACTION_PAGES = 8;
 const PAGE_SIZE = 50;
+const SCORING_TRANSACTION_LIMIT = MAX_TRANSACTION_PAGES * PAGE_SIZE;
+const MAX_VOLUME_TRANSACTIONS = 10_000;
 const FARCASTER_CAST_LIMIT = 50;
 
 const PROTOCOL_CATEGORY_ORDER: ProtocolCategory[] = [
@@ -328,7 +332,7 @@ async function fetchBlockscoutTxs(address: string): Promise<BlockscoutTx[]> {
     url.searchParams.set("startblock", "0");
     url.searchParams.set("endblock", "99999999");
     url.searchParams.set("page", "1");
-    url.searchParams.set("offset", String(MAX_TRANSACTION_PAGES * PAGE_SIZE));
+    url.searchParams.set("offset", String(SCORING_TRANSACTION_LIMIT));
     url.searchParams.set("sort", "desc");
 
     const legacy = await fetchJson<BlockscoutLegacyResponse>(url.toString());
@@ -368,6 +372,34 @@ async function fetchBlockscoutTxs(address: string): Promise<BlockscoutTx[]> {
 async function fetchBlockscoutCounters(address: string): Promise<BlockscoutCountersResponse> {
   const url = `https://base.blockscout.com/api/v2/addresses/${address}/counters`;
   return fetchJson<BlockscoutCountersResponse>(url);
+}
+
+async function fetchNativeVolumeWei(address: string, txCountHint = 0): Promise<bigint> {
+  const requestedLimit = Math.max(
+    SCORING_TRANSACTION_LIMIT,
+    Math.min(MAX_VOLUME_TRANSACTIONS, Math.ceil(txCountHint || SCORING_TRANSACTION_LIMIT)),
+  );
+
+  const url = new URL("https://base.blockscout.com/api");
+  url.searchParams.set("module", "account");
+  url.searchParams.set("action", "txlist");
+  url.searchParams.set("address", address);
+  url.searchParams.set("startblock", "0");
+  url.searchParams.set("endblock", "99999999");
+  url.searchParams.set("page", "1");
+  url.searchParams.set("offset", String(requestedLimit));
+  url.searchParams.set("sort", "desc");
+
+  const legacy = await fetchJson<BlockscoutLegacyResponse>(url.toString());
+  if (!Array.isArray(legacy.result)) return 0n;
+
+  return legacy.result.reduce((sum, tx) => {
+    try {
+      return sum + BigInt(tx.value || "0");
+    } catch {
+      return sum;
+    }
+  }, 0n);
 }
 
 async function fetchFarcasterSocialSignal(fid?: number): Promise<FarcasterSocialSignal | undefined> {
@@ -461,6 +493,7 @@ export async function calculateBaseWalletScore(address: string, options: { fid?:
   const txCountFromCounters = safeNumber(counters.transactions_count);
   const txCount = Math.max(txCountFromCounters, sampledTxCount);
   const tokenTransferCount = safeNumber(counters.token_transfers_count);
+  const fullVolumeWeiPromise = fetchNativeVolumeWei(normalizedAddress, txCount).catch(() => 0n);
 
   const txTimes = txs
     .map((tx) => parseIsoToMs(tx.timestamp))
@@ -517,8 +550,10 @@ export async function calculateBaseWalletScore(address: string, options: { fid?:
   const activeDays30 = activeDates30.size;
   const activeDays90 = activeDates90.size;
   const uniqueContracts = contractSet.size;
-  const totalVolumeEth = Number(totalWei) / 1e18;
-  const sampleCoverage = txCount > 0 ? Math.min(1, sampledTxCount / Math.min(txCount, MAX_TRANSACTION_PAGES * PAGE_SIZE)) : 0;
+  const fullVolumeWei = await fullVolumeWeiPromise;
+  const volumeWei = fullVolumeWei > totalWei ? fullVolumeWei : totalWei;
+  const totalVolumeEth = Number(volumeWei) / 1e18;
+  const sampleCoverage = txCount > 0 ? Math.min(1, sampledTxCount / Math.min(txCount, SCORING_TRANSACTION_LIMIT)) : 0;
   const sampleSpanDays = newestSampleTs > 0 ? Math.max(1, Math.floor((newestSampleTs - firstSampleTs) / 86_400_000) + 1) : 0;
   const confidence = Math.round(clamp(35 + sampleCoverage * 35 + Math.min(sampledTxCount / 120, 1) * 20 + Math.min(sampleSpanDays / 60, 1) * 10, 0, 100));
 
