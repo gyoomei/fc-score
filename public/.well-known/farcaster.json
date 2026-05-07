@@ -12,7 +12,7 @@
     "imageUrl": "https://fc-score.tomyratama128.workers.dev/app-farcaster-image-v3.png?v=logo20260507",
     "buttonTitle": "Check this out",
     "splashImageUrl": "https://fc-score.tomyratama128.workers.dev/app-splash-v3.png?v=logo20260507",
-    "splashBackgroundColor": "#eeccff",
+    "splashBackgroundColor": "#000000",
     "webhookUrl": "https://fc-score.tomyratama128.workers.dev/api/webhook"
   }
 }

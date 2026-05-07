@@ -6,7 +6,7 @@
   "shortDescription": "Check this out",
   "primaryCategory": "utility",
   "tags": ["base", "score", "frame"],
-  "splashBackgroundColor": "#eeccff",
+  "splashBackgroundColor": "#000000",
   "tagline": "Check this out",
   "requiredChains": [],
   "shareButtonTitle": "Check this out"
