@@ -1,13 +1,17 @@
 {
-  "name": "Example Frame",
-  "shortName": "Example Frame",
-  "subtitle": "Check this out",
-  "description": "Check this out",
-  "shortDescription": "Check this out",
+  "name": "Base Score",
+  "shortName": "Base Score",
+  "subtitle": "Base Score",
+  "description": "Check your Base wallet score",
+  "shortDescription": "Check your Base wallet score",
   "primaryCategory": "utility",
-  "tags": ["base", "score", "frame"],
+  "tags": [
+    "base",
+    "score",
+    "frame"
+  ],
   "splashBackgroundColor": "#000000",
-  "tagline": "Check this out",
+  "tagline": "Check your Base wallet score",
   "requiredChains": [],
-  "shareButtonTitle": "Check this out"
+  "shareButtonTitle": "Base Score"
 }
