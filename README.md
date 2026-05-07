@@ -1,82 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FC Score
 
-## Database Schema
+Farcaster Mini App for checking Neynar/Farcaster reputation score and Base onchain activity.
 
-This project uses [Drizzle ORM](https://orm.drizzle.team/) for database management. The schema is defined in `src/db/schema.ts`.
+## Deploy on Cloudflare Workers
 
-### ⚠️ CRITICAL: Do Not Delete or Edit the `kv` Table
+This project is configured for Cloudflare Workers using OpenNext.
 
-The `kv` table in `src/db/schema.ts` is a **required built-in table** that must never be removed or modified. Deleting or editing this table definition will cause:
+### Cloudflare build settings
 
-- Database schema conflicts during deployment
-- Interactive prompts during `drizzle-kit push` that block app startup
-- Deployment failures and health check timeouts
+Use these commands in Cloudflare:
 
-**Rules for the `kv` table:**
+```bash
+pnpm install --frozen-lockfile
+pnpm run build
+npx wrangler deploy
+```
 
-- ❌ Never delete the table definition
-- ❌ Never modify the table name, fields, or types
-- ❌ Never rename or comment out the table
-- ✅ Always keep it exactly as defined in the template
+`pnpm run build` runs `opennextjs-cloudflare build` and generates the `.open-next` output required by Wrangler.
 
-**Always keep the `kv` table definition unchanged in your schema file, even if you don't use it.**
+### Local verification
 
-### Adding Custom Tables
+```bash
+pnpm install
+pnpm run type-check
+pnpm run build
+pnpm exec wrangler deploy --dry-run
+```
 
-Add your custom table definitions below the `kv` table in `src/db/schema.ts`. See the examples in that file for reference.
+### Environment variables
 
-### Database Schema Push Behavior
+Set production values in Cloudflare, not in source code:
 
-The `db:push` command uses `drizzle-kit push` to synchronize your schema with the database. **This command is configured to fail fast** rather than prompt for user input.
+- `NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL` — production domain without protocol, for example `fc-score.<your-subdomain>.workers.dev` or your custom domain.
+- `NEYNAR_API_KEY` — required for full Neynar/Farcaster profile data.
+- `NEXT_PUBLIC_USER_FID` — optional app/user FID.
+- `WEBHOOK_URL` — optional webhook URL.
 
-**Important behavior:**
+## Farcaster Mini App notes
 
-- The push command will **fail immediately** if there are ambiguous or destructive schema changes
-- This is intentional to prevent blocking deployments
-- Common failure scenarios:
-  - Renaming columns (Drizzle can't distinguish rename from delete+add)
-  - Renaming tables
-  - Adding constraints to tables with existing data
-  - Ambiguous schema changes
+Farcaster requires `/.well-known/farcaster.json` to be available at the root of the production domain.
 
-**When the push fails, you should:**
+If you change the production Cloudflare domain, regenerate/sign the Farcaster account association for the new domain. Do not manually edit the signed association payload because the signature must match the domain.
 
-1. Make non-destructive changes instead:
-   - **Instead of renaming columns:** Add a new column, migrate data, then remove the old column in a separate change
-   - **Instead of renaming tables:** Create a new table with the desired name
-   - **Instead of adding unique constraints to populated tables:** Clear data first or use nullable fields
-2. Review the error message from `drizzle-kit push` to understand what change is ambiguous
-3. Adjust your schema to be more explicit and non-destructive
-
-## Getting Started
-
-First, run the development server:
+## Development
 
 ```bash
 pnpm run dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).

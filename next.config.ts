@@ -7,10 +7,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: import.meta.dirname,
   },
-  // Expose VERCEL_PROJECT_PRODUCTION_URL to client-side code
   env: {
-    NEXT_PUBLIC_VERCEL_PRODUCTION_URL:
-      process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL:
+      process.env.NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL,
   },
   allowedDevOrigins: [
     "*.ngrok.app",

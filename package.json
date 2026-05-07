@@ -13,8 +13,6 @@
     "deploy:cloudflare": "opennextjs-cloudflare deploy",
     "clean": "rimraf .next node_modules",
     "cleanup": "node scripts/cleanup.js",
-    "deploy:raw": "vercel --prod",
-    "deploy:vercel": "node --loader ts-node/esm scripts/deploy.ts",
     "dev": "pnpm run db:push && next dev --turbopack",
     "dev:webpack": "pnpm run db:push && next dev -p 3001",
     "install:standalone": "pnpm install",
@@ -29,7 +27,8 @@
     "type-check:detailed": "tsc --noEmit --pretty --listFiles",
     "type-check:watch": "tsc --noEmit --watch",
     "validate": "pnpm run type-check && pnpm run lint && pnpm run format:check",
-    "validate:fix": "pnpm run type-check && pnpm run lint:fix && pnpm run format"
+    "validate:fix": "pnpm run type-check && pnpm run lint:fix && pnpm run format",
+    "deploy:worker": "opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@coingecko/coingecko-typescript": "1.11.3",
@@ -63,7 +62,6 @@
     "@types/prettier": "^2.7.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "@vercel/sdk": "^1.9.0",
     "abitype": "^1.1.1",
     "babel-plugin-react-compiler": "1.0.0",
     "crypto": "^1.0.1",

@@ -108,13 +108,14 @@ const publicConfigSchema = z.object({
 
 type PublicConfig = z.infer<typeof publicConfigSchema>;
 
-// Ensure domain is domain and url is url
-// NEXT_PUBLIC_VERCEL_PRODUCTION_URL is exposed via next.config.ts from VERCEL_PROJECT_PRODUCTION_URL
+// Ensure domain is domain and url is url.
+// For Cloudflare Workers, set NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL to your production domain
+// without protocol, for example: fc-score.<your-subdomain>.workers.dev or a custom domain.
 const canonicalDomain =
-  process.env.NEXT_PUBLIC_VERCEL_PRODUCTION_URL ??
+  process.env.NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL ??
   process.env.NEXT_PUBLIC_LOCAL_URL ??
   process.env.NEXT_PUBLIC_BASE_URL ??
-  "fc-score-aa8e.vercel.app";
+  "fc-score.gyoomei.workers.dev";
 
 const homeUrl = `https://${canonicalDomain}`;
 
