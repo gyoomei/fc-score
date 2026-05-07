@@ -1,51 +1,47 @@
 # FC Score
 
-Farcaster Mini App for checking Neynar/Farcaster reputation score and Base onchain activity.
+FC Score adalah Farcaster Mini App untuk mengecek reputasi pengguna dari FID, sinyal sosial Farcaster/Neynar, dan aktivitas onchain di Base.
 
-## Deploy on Cloudflare Workers
+## Fungsi utama
 
-This project is configured for Cloudflare Workers using OpenNext.
+- Cek skor reputasi Farcaster berdasarkan FID.
+- Tampilkan profil Farcaster saat data Neynar tersedia.
+- Analisis aktivitas wallet di Base seperti transaksi, kontrak unik, aktivitas 30 hari, dan kategori protokol.
+- Gabungkan sinyal sosial dan onchain menjadi ringkasan score yang mudah dibaca.
+- Buat kartu/share image untuk membagikan hasil score di Farcaster.
 
-### Cloudflare build settings
+## Cara pakai
 
-Use these commands in Cloudflare:
+1. Buka app dari Farcaster Mini App.
+2. Masukkan FID atau gunakan konteks user Farcaster jika tersedia.
+3. Hubungkan wallet Base jika ingin menambahkan analisis onchain.
+4. Lihat score, breakdown, tier, dan insight reputasi.
+5. Bagikan hasil ke Farcaster.
 
-```bash
-pnpm install --frozen-lockfile
-pnpm run build
-npx wrangler deploy
+## Konfigurasi penting
+
+Environment variable yang dipakai app:
+
+- `NEYNAR_API_KEY` — untuk mengambil data profil dan sinyal Farcaster dari Neynar.
+- `NEXT_PUBLIC_USER_FID` — opsional, FID default/app owner.
+- `NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL` — domain production tanpa protokol.
+- `WEBHOOK_URL` — opsional untuk webhook Farcaster.
+
+## Farcaster Mini App
+
+Manifest tersedia di:
+
+```text
+/.well-known/farcaster.json
 ```
 
-`pnpm run build` runs `opennextjs-cloudflare build` and generates the `.open-next` output required by Wrangler.
-
-### Local verification
-
-```bash
-pnpm install
-pnpm run type-check
-pnpm run build
-pnpm exec wrangler deploy --dry-run
-```
-
-### Environment variables
-
-Set production values in Cloudflare, not in source code:
-
-- `NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL` — production domain without protocol, for example `fc-score.<your-subdomain>.workers.dev` or your custom domain.
-- `NEYNAR_API_KEY` — required for full Neynar/Farcaster profile data.
-- `NEXT_PUBLIC_USER_FID` — optional app/user FID.
-- `WEBHOOK_URL` — optional webhook URL.
-
-## Farcaster Mini App notes
-
-Farcaster requires `/.well-known/farcaster.json` to be available at the root of the production domain.
-
-If you change the production Cloudflare domain, regenerate/sign the Farcaster account association for the new domain. Do not manually edit the signed association payload because the signature must match the domain.
+Jika domain production berubah, account association Farcaster harus di-sign ulang untuk domain baru. Jangan edit payload/signature secara manual karena signature harus cocok dengan domain.
 
 ## Development
 
 ```bash
+pnpm install
 pnpm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Buka [http://localhost:3000](http://localhost:3000).
