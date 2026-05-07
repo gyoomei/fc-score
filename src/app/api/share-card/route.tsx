@@ -10,13 +10,6 @@ function tierFromScore(score: number): "Dormant" | "Active" | "Power" | "Whale" 
   return "Dormant";
 }
 
-function nextTierLabel(score: number): string {
-  if (score >= 850) return "MAX TIER REACHED";
-  if (score >= 650) return `TO WHALE ${850 - score} PTS`;
-  if (score >= 350) return `TO POWER ${650 - score} PTS`;
-  return `TO ACTIVE ${350 - score} PTS`;
-}
-
 type RGB = [number, number, number];
 
 const WIDTH = 1200;
@@ -201,18 +194,10 @@ async function makePng(score: number, tier: string, tx: number, activeDays: numb
   fillRect(pixels, 100, 100, 1000, 600, [18, 22, 42]);
   fillRect(pixels, 106, 106, 988, 588, [30, 36, 64]);
 
-  const tierColor: RGB = tier === "Whale" ? [45, 212, 191] : tier === "Power" ? [168, 85, 247] : tier === "Active" ? [96, 165, 250] : [203, 213, 225];
-
   drawText(pixels, "BASE SCORE", 135, 132, 8, [196, 181, 253]);
   drawText(pixels, "ONCHAIN WALLET RANK", 135, 205, 4, [148, 163, 184]);
 
   drawText(pixels, String(score), 135, 270, 24, [248, 250, 252]);
-
-  fillRect(pixels, 135, 475, 260, 64, tierColor);
-  drawText(pixels, `TIER ${tier}`, 165, 493, 5, [8, 10, 22]);
-
-  fillRect(pixels, 425, 475, 330, 64, [16, 185, 129]);
-  drawText(pixels, nextTierLabel(score), 455, 493, 4, [8, 10, 22], 22);
 
   const statsY = 590;
   const boxes = [

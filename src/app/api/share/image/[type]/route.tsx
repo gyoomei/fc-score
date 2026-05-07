@@ -20,7 +20,6 @@ export async function GET(
 
   const searchParams = parseNextRequestSearchParams(request);
   const score = searchParams.score ?? "0";
-  const tier = searchParams.tier ?? "";
   const username = searchParams.username ?? "";
   const personalize = searchParams.personalize === "true";
 
@@ -89,24 +88,6 @@ export async function GET(
           gap: 0,
         }}
       >
-        {/* Tier label */}
-        {tier ? (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 28,
-              color: "rgba(255,255,255,0.7)",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              marginBottom: 8,
-            }}
-          >
-            {tier}
-          </div>
-        ) : null}
-
         {/* Score number */}
         <div
           style={{
