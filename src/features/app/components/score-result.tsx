@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { ScoreRing } from "@/features/app/components/score-ring";
-import { TierBadge } from "@/features/app/components/tier-badge";
 import { StatCard } from "@/features/app/components/stat-card";
 import { ShareButton } from "@/neynar-farcaster-sdk/mini";
 import type { FarcasterScoreResult } from "@/features/app/types";
@@ -64,7 +63,7 @@ export function ScoreResult({
       color: "#10b981",
     },
     {
-      label: "Power Badge",
+      label: "Badge",
       value: breakdown.powerBadgeScore,
       maxValue: 50,
       icon: "⚡",
@@ -100,22 +99,11 @@ export function ScoreResult({
           <p className="font-bold text-white text-base truncate">{displayName}</p>
           <p className="text-gray-500 text-sm">@{username}</p>
         </div>
-        <TierBadge tier={tier} size="sm" />
       </div>
 
       {/* Score Ring */}
       <div className="flex flex-col items-center gap-3 px-4">
         <ScoreRing score={totalScore} tier={tier} animated />
-
-        <div className="text-center">
-          <p
-            className="text-xl font-bold"
-            style={{ color: tier.color }}
-          >
-            {tier.emoji} {tier.label}
-          </p>
-          <p className="text-gray-400 text-sm mt-0.5">{tier.description}</p>
-        </div>
 
         {/* Percentile chip */}
         <div
@@ -146,111 +134,18 @@ export function ScoreResult({
         </div>
       </div>
 
-      {/* Tier ladder */}
-      <TierLadder currentTier={tier.key} currentScore={totalScore} />
-
       {/* Share */}
       <div className="px-4">
         <ShareButton
-          text={`My Farcaster Score is ${totalScore}/1000 — ${tier.emoji} ${tier.label} tier! Check yours:`}
+          text={`My Farcaster Score is ${totalScore}/1000. Check yours:`}
           queryParams={{
             score: totalScore.toString(),
-            tier: tier.label,
             username,
           }}
           className="w-full h-12 text-base font-bold rounded-xl bg-[linear-gradient(135deg,#c9a227,#f59e0b)] text-black border-none"
         >
           Share My Score
         </ShareButton>
-      </div>
-    </div>
-  );
-}
-
-function TierLadder({
-  currentTier,
-  currentScore,
-}: {
-  currentTier: string;
-  currentScore: number;
-}) {
-  const tiers = [
-    { key: "newcomer", label: "Newcomer", emoji: "🌱", min: 0 },
-    { key: "explorer", label: "Explorer", emoji: "🔭", min: 200 },
-    { key: "builder", label: "Builder", emoji: "⚒️", min: 400 },
-    { key: "influencer", label: "Influencer", emoji: "⚡", min: 600 },
-    { key: "og", label: "OG", emoji: "👑", min: 750 },
-    { key: "legend", label: "Legend", emoji: "🏆", min: 900 },
-  ];
-
-  return (
-    <div className="px-4">
-      <p className="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-3">
-        Tier Ladder
-      </p>
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          border: "1px solid rgba(255,255,255,0.07)",
-          background: "rgba(255,255,255,0.02)",
-        }}
-      >
-        {tiers.map((t, i) => {
-          const isActive = t.key === currentTier;
-          const isPast = currentScore >= t.min;
-          return (
-            <div
-              key={t.key}
-              className={`flex items-center gap-3 px-4 py-3 ${i < tiers.length - 1 ? "border-b" : ""}`}
-              style={{
-                borderColor: "rgba(255,255,255,0.05)",
-                background: isActive
-                  ? "rgba(201,162,39,0.08)"
-                  : "transparent",
-              }}
-            >
-              <span className={`text-lg ${isPast ? "" : "opacity-30"}`}>
-                {t.emoji}
-              </span>
-              <span
-                className={`flex-1 text-sm font-medium ${
-                  isActive
-                    ? "text-amber-400"
-                    : isPast
-                    ? "text-white"
-                    : "text-gray-600"
-                }`}
-              >
-                {t.label}
-              </span>
-              <span
-                className={`text-xs ${
-                  isActive
-                    ? "text-amber-400 font-bold"
-                    : isPast
-                    ? "text-gray-500"
-                    : "text-gray-700"
-                }`}
-              >
-                {t.min}+
-              </span>
-              {isActive && (
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-bold"
-                  style={{
-                    background: "rgba(201,162,39,0.2)",
-                    color: "#c9a227",
-                  }}
-                >
-                  YOU
-                </span>
-              )}
-              {!isActive && isPast && (
-                <span className="text-green-500 text-xs">✓</span>
-              )}
-            </div>
-          );
-        })}
       </div>
     </div>
   );
