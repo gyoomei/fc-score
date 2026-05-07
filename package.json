@@ -6,6 +6,9 @@
   "scripts": {
     "db:push": "[ -z \"$DATABASE_URL\" ] || drizzle-kit push --force --verbose </dev/null",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "preview:cloudflare": "opennextjs-cloudflare build && wrangler dev",
+    "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "clean": "rimraf .next node_modules",
     "cleanup": "node scripts/cleanup.js",
     "deploy:raw": "vercel --prod",
@@ -49,16 +52,17 @@
     "zod": "4.1.12"
   },
   "devDependencies": {
-    "abitype": "^1.1.1",
     "@eslint/eslintrc": "3.3.3",
     "@next/eslint-plugin-next": "16.2.1",
     "@neynar/eslint-plugin": "0.0.3",
+    "@opennextjs/cloudflare": "^1.19.7",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.19.15",
     "@types/prettier": "^2.7.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@vercel/sdk": "^1.9.0",
+    "abitype": "^1.1.1",
     "babel-plugin-react-compiler": "1.0.0",
     "crypto": "^1.0.1",
     "drizzle-kit": "^0.31.5",
@@ -72,7 +76,8 @@
     "ts-morph": "^26.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "wrangler": "^4.88.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
