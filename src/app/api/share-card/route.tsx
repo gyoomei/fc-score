@@ -1,8 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-
-
 function clampScore(input: number): number {
   if (Number.isNaN(input)) return 0;
   return Math.max(0, Math.min(1000, Math.round(input)));
