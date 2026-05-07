@@ -1,41 +1,41 @@
 # FC Score
 
-FC Score adalah Farcaster Mini App untuk mengecek reputasi pengguna dari FID, sinyal sosial Farcaster/Neynar, dan aktivitas onchain di Base.
+FC Score is a Farcaster Mini App for checking a user's reputation from their FID, Farcaster/Neynar social signals, and onchain activity on Base.
 
-## Fungsi utama
+## Core features
 
-- Cek skor reputasi Farcaster berdasarkan FID.
-- Tampilkan profil Farcaster saat data Neynar tersedia.
-- Analisis aktivitas wallet di Base seperti transaksi, kontrak unik, aktivitas 30 hari, dan kategori protokol.
-- Gabungkan sinyal sosial dan onchain menjadi ringkasan score yang mudah dibaca.
-- Buat kartu/share image untuk membagikan hasil score di Farcaster.
+- Check Farcaster reputation score by FID.
+- Display Farcaster profile data when Neynar data is available.
+- Analyze Base wallet activity such as transactions, unique contracts, 30-day activity, and protocol categories.
+- Combine social and onchain signals into an easy-to-read reputation summary.
+- Generate a share card/image for posting score results on Farcaster.
 
-## Cara pakai
+## How to use
 
-1. Buka app dari Farcaster Mini App.
-2. Masukkan FID atau gunakan konteks user Farcaster jika tersedia.
-3. Hubungkan wallet Base jika ingin menambahkan analisis onchain.
-4. Lihat score, breakdown, tier, dan insight reputasi.
-5. Bagikan hasil ke Farcaster.
+1. Open the app from Farcaster Mini Apps.
+2. Enter a FID or use the available Farcaster user context.
+3. Connect a Base wallet to include onchain analysis.
+4. Review the score, breakdown, tier, and reputation insights.
+5. Share the result on Farcaster.
 
-## Konfigurasi penting
+## Configuration
 
-Environment variable yang dipakai app:
+Environment variables used by the app:
 
-- `NEYNAR_API_KEY` — untuk mengambil data profil dan sinyal Farcaster dari Neynar.
-- `NEXT_PUBLIC_USER_FID` — opsional, FID default/app owner.
-- `NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL` — domain production tanpa protokol.
-- `WEBHOOK_URL` — opsional untuk webhook Farcaster.
+- `NEYNAR_API_KEY` — fetches profile data and Farcaster signals from Neynar.
+- `NEXT_PUBLIC_USER_FID` — optional default/app owner FID.
+- `NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL` — production domain without protocol.
+- `WEBHOOK_URL` — optional Farcaster webhook URL.
 
 ## Farcaster Mini App
 
-Manifest tersedia di:
+The manifest is available at:
 
 ```text
 /.well-known/farcaster.json
 ```
 
-Jika domain production berubah, account association Farcaster harus di-sign ulang untuk domain baru. Jangan edit payload/signature secara manual karena signature harus cocok dengan domain.
+If the production domain changes, the Farcaster account association must be regenerated/signed for the new domain. Do not manually edit the payload/signature because the signature must match the domain.
 
 ## Development
 
@@ -44,4 +44,4 @@ pnpm install
 pnpm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
