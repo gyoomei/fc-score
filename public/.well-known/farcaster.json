@@ -7,11 +7,11 @@
   "frame": {
     "version": "1",
     "name": "Example Frame",
-    "iconUrl": "https://fc-score.tomyratama128.workers.dev/icon.png",
+    "iconUrl": "https://fc-score.tomyratama128.workers.dev/app-logo-v3.png?v=logo20260507",
     "homeUrl": "https://fc-score.tomyratama128.workers.dev",
-    "imageUrl": "https://fc-score.tomyratama128.workers.dev/image.png",
+    "imageUrl": "https://fc-score.tomyratama128.workers.dev/app-farcaster-image-v3.png?v=logo20260507",
     "buttonTitle": "Check this out",
-    "splashImageUrl": "https://fc-score.tomyratama128.workers.dev/splash.png",
+    "splashImageUrl": "https://fc-score.tomyratama128.workers.dev/app-splash-v3.png?v=logo20260507",
     "splashBackgroundColor": "#eeccff",
     "webhookUrl": "https://fc-score.tomyratama128.workers.dev/api/webhook"
   }

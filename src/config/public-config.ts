@@ -113,9 +113,9 @@ type PublicConfig = z.infer<typeof publicConfigSchema>;
 // without protocol, for example: fc-score.<your-subdomain>.workers.dev or a custom domain.
 const canonicalDomain =
   process.env.NEXT_PUBLIC_CLOUDFLARE_WORKERS_URL ??
-  process.env.NEXT_PUBLIC_LOCAL_URL ??
+  process.env.NEXT_PUBLIC_URL ??
   process.env.NEXT_PUBLIC_BASE_URL ??
-  "fc-score.gyoomei.workers.dev";
+  "fc-score.tomyratama128.workers.dev";
 
 const homeUrl = `https://${canonicalDomain}`;
 

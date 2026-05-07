@@ -1,13 +1,13 @@
 {
-  "name": "Base Score",
-  "shortName": "Base Score",
-  "subtitle": "Your Onchain Base Wallet Score",
-  "description": "Measure your Base wallet strength from real onchain activity. Base Score analyzes wallet age, transaction activity, consistency, and volume to generate your wallet score.",
-  "shortDescription": "Check your onchain Base wallet score instantly",
-  "primaryCategory": "finance",
-  "tags": ["base", "wallet", "onchain", "score", "analytics"],
-  "splashBackgroundColor": "#0a0a0f",
-  "tagline": "Onchain signal. Base score.",
-  "requiredChains": ["eip155:8453", "eip155:1"],
-  "shareButtonTitle": "See My Base Score"
+  "name": "Example Frame",
+  "shortName": "Example Frame",
+  "subtitle": "Check this out",
+  "description": "Check this out",
+  "shortDescription": "Check this out",
+  "primaryCategory": "utility",
+  "tags": ["base", "score", "frame"],
+  "splashBackgroundColor": "#eeccff",
+  "tagline": "Check this out",
+  "requiredChains": [],
+  "shareButtonTitle": "Check this out"
 }
