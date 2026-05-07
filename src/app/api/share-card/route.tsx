@@ -17,12 +17,6 @@ function nextTierLabel(score: number): string {
   return `TO ACTIVE ${350 - score} PTS`;
 }
 
-function safeText(input: string, fallback: string, maxLen = 32): string {
-  const value = (input || "").trim();
-  if (!value) return fallback;
-  return value.slice(0, maxLen);
-}
-
 type RGB = [number, number, number];
 
 const WIDTH = 1200;
@@ -195,41 +189,42 @@ async function deflateData(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(compressed);
 }
 
-async function makePng(score: number, tier: string, handle: string, tx: number, activeDays: number, volume: number): Promise<Uint8Array> {
+async function makePng(score: number, tier: string, tx: number, activeDays: number, volume: number): Promise<Uint8Array> {
   const pixels = new Uint8Array(WIDTH * HEIGHT * BYTES_PER_PIXEL);
   fillRect(pixels, 0, 0, WIDTH, HEIGHT, [8, 10, 22]);
-  fillCircle(pixels, 180, 135, 250, [35, 23, 82]);
-  fillCircle(pixels, 980, 100, 230, [10, 79, 82]);
-  fillCircle(pixels, 1030, 680, 260, [77, 31, 95]);
-  fillRect(pixels, 54, 54, 1092, 692, [18, 22, 42]);
-  fillRect(pixels, 62, 62, 1076, 676, [26, 31, 55]);
-  fillRect(pixels, 92, 92, 1016, 616, [18, 22, 42]);
-  fillRect(pixels, 96, 96, 1008, 608, [30, 36, 64]);
+  fillCircle(pixels, 160, 120, 220, [32, 22, 78]);
+  fillCircle(pixels, 980, 120, 220, [8, 72, 76]);
+  fillCircle(pixels, 1010, 680, 240, [68, 28, 88]);
+
+  fillRect(pixels, 60, 60, 1080, 680, [18, 22, 42]);
+  fillRect(pixels, 70, 70, 1060, 660, [28, 34, 60]);
+  fillRect(pixels, 100, 100, 1000, 600, [18, 22, 42]);
+  fillRect(pixels, 106, 106, 988, 588, [30, 36, 64]);
 
   const tierColor: RGB = tier === "Whale" ? [45, 212, 191] : tier === "Power" ? [168, 85, 247] : tier === "Active" ? [96, 165, 250] : [203, 213, 225];
-  drawText(pixels, "BASE WALLET SCORE", 120, 130, 7, [196, 181, 253]);
-  drawText(pixels, String(score), 120, 205, 25, [248, 250, 252]);
-  fillRect(pixels, 122, 405, 260, 56, tierColor);
-  drawText(pixels, `TIER ${tier}`, 148, 420, 5, [8, 10, 22]);
-  fillRect(pixels, 420, 405, 220, 56, [16, 185, 129]);
-  drawText(pixels, "LIVE BASE", 448, 420, 5, [8, 10, 22]);
 
-  const cleanHandle = handle.startsWith("@") ? handle : `@${handle}`;
-  drawText(pixels, cleanHandle, 720, 134, 7, [248, 250, 252], 18);
-  drawText(pixels, nextTierLabel(score), 120, 500, 5, [209, 250, 229]);
+  drawText(pixels, "BASE SCORE", 135, 132, 8, [196, 181, 253]);
+  drawText(pixels, "ONCHAIN WALLET RANK", 135, 205, 4, [148, 163, 184]);
+
+  drawText(pixels, String(score), 135, 270, 24, [248, 250, 252]);
+
+  fillRect(pixels, 135, 475, 260, 64, tierColor);
+  drawText(pixels, `TIER ${tier}`, 165, 493, 5, [8, 10, 22]);
+
+  fillRect(pixels, 425, 475, 330, 64, [16, 185, 129]);
+  drawText(pixels, nextTierLabel(score), 455, 493, 4, [8, 10, 22], 22);
 
   const statsY = 590;
   const boxes = [
-    { label: "TX COUNT", value: String(Math.round(tx)), x: 120 },
-    { label: "ACTIVE 30D", value: String(Math.round(activeDays)), x: 430 },
-    { label: "VOLUME ETH", value: String(Math.round(volume * 100) / 100), x: 740 },
+    { label: "TX", value: String(Math.round(tx)), x: 135, w: 250 },
+    { label: "ACTIVE", value: String(Math.round(activeDays)), x: 475, w: 250 },
+    { label: "ETH", value: String(Math.round(volume * 100) / 100), x: 815, w: 250 },
   ];
   for (const box of boxes) {
-    fillRect(pixels, box.x, statsY, 260, 98, [37, 45, 78]);
-    drawText(pixels, box.label, box.x + 24, statsY + 20, 4, [209, 213, 219]);
-    drawText(pixels, box.value, box.x + 24, statsY + 54, 6, [255, 255, 255], 12);
+    fillRect(pixels, box.x, statsY, box.w, 92, [37, 45, 78]);
+    drawText(pixels, box.label, box.x + 26, statsY + 18, 4, [167, 139, 250]);
+    drawText(pixels, box.value, box.x + 26, statsY + 52, 5, [255, 255, 255], 10);
   }
-  drawText(pixels, "FARCASTER MINI APP", 720, 684, 4, [167, 139, 250]);
 
   const scanline = WIDTH * BYTES_PER_PIXEL + 1;
   const raw = new Uint8Array(scanline * HEIGHT);
@@ -267,12 +262,11 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const score = clampScore(Number(searchParams.get("score") || 0));
   const tier = tierFromScore(score);
-  const handle = safeText(searchParams.get("handle") || searchParams.get("username") || "", "@base-user", 32);
   const tx = Math.max(0, Number(searchParams.get("tx") || 0));
   const activeDays = Math.max(0, Number(searchParams.get("active") || 0));
   const volume = Math.max(0, Number(searchParams.get("volume") || 0));
 
-  const png = await makePng(score, tier, handle, tx, activeDays, volume);
+  const png = await makePng(score, tier, tx, activeDays, volume);
 
   const body = png.buffer.slice(png.byteOffset, png.byteOffset + png.byteLength) as ArrayBuffer;
 
