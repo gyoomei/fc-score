@@ -40,14 +40,13 @@ export async function getFarcasterPageMetadata({
   const isScoreShare = isPersonalized && params.score;
   const imageParams = new URLSearchParams(params);
   const username = imageParams.get("username");
-  if (username) {
+  if (username && !imageParams.get("handle")) {
     imageParams.set("handle", username.startsWith("@") ? username : `@${username}`);
-    imageParams.delete("username");
   }
   imageParams.delete("personalize");
-  imageParams.delete("tier");
+  const personalizedShareCardQuery = imageParams.toString();
   const personalizedShareCardUrl = isScoreShare
-    ? `${homeUrl}/api/share-card?${imageParams.toString()}`
+    ? `${homeUrl}/api/share-card${personalizedShareCardQuery ? `?${personalizedShareCardQuery}` : ""}`
     : "";
   const ogImageUrlValue = personalizedShareCardUrl || `${shareImageRoot}/og${conditionalQueryString}`;
   const farcasterImageUrlValue = personalizedShareCardUrl || `${shareImageRoot}/farcaster${conditionalQueryString}`;

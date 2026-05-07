@@ -2,9 +2,6 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-const soraFontPromises = [400, 500, 600, 700, 800].map((weight) =>
-  fetch(new URL(`./sora-${weight}-20260502.ttf?v=sora-base-score-20260502`, import.meta.url)).then((res) => res.arrayBuffer()),
-);
 
 function clampScore(input: number): number {
   if (Number.isNaN(input)) return 0;
@@ -90,7 +87,6 @@ function tierTheme(tier: string): {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const soraFonts = await Promise.all(soraFontPromises);
 
   const score = clampScore(Number(searchParams.get("score") || 0));
   const tier = tierFromScore(score);
@@ -114,7 +110,7 @@ export async function GET(req: Request) {
           background: theme.cardBackground,
           color: "white",
           padding: "56px",
-          fontFamily: "SoraBaseScore",
+          fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
         }}
       >
         <div
@@ -284,38 +280,6 @@ export async function GET(req: Request) {
     {
       width: 1200,
       height: 800,
-      fonts: [
-        {
-          name: "SoraBaseScore",
-          data: soraFonts[0],
-          style: "normal",
-          weight: 400,
-        },
-        {
-          name: "SoraBaseScore",
-          data: soraFonts[1],
-          style: "normal",
-          weight: 500,
-        },
-        {
-          name: "SoraBaseScore",
-          data: soraFonts[2],
-          style: "normal",
-          weight: 600,
-        },
-        {
-          name: "SoraBaseScore",
-          data: soraFonts[3],
-          style: "normal",
-          weight: 700,
-        },
-        {
-          name: "SoraBaseScore",
-          data: soraFonts[4],
-          style: "normal",
-          weight: 800,
-        },
-      ],
       headers: {
         "Cache-Control": "public, max-age=60, s-maxage=300",
       },
