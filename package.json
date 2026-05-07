@@ -6,8 +6,10 @@
   "scripts": {
     "db:push": "[ -z \"$DATABASE_URL\" ] || drizzle-kit push --force --verbose </dev/null",
     "build": "next build",
+    "build:next": "next build",
     "build:cloudflare": "opennextjs-cloudflare build",
-    "preview:cloudflare": "opennextjs-cloudflare build && wrangler dev",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "clean": "rimraf .next node_modules",
     "cleanup": "node scripts/cleanup.js",
